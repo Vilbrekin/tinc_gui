@@ -8,5 +8,17 @@
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="debug">Debug</string>
+    <string name="settings">Settings</string>
+    <string name="config_path">Configuration path</string>
+    <string name="config_path_details">Folder containing tinc configuration</string>
+    <string name="pref_key_config_path">pref_key_config_path</string>
+    <string name="pref_key_max_log_size">pref_key_max_log_size</string>
+    <string name="button_clear">Clear</string>
+    <string name="button_status">Status</string>
+    <string name="max_log_size">Maximum log size</string>
+    <string name="max_log_size_details">Maximum number of lines stored in internal log</string>
+    <string name="pref_title_general_settings">General settings</string>
+    <string name="pref_title_current_config">Current configuration</string>
+    <string name="pref_key_config">pref_key_config</string>
 
 </resources>

@@ -2,36 +2,47 @@ package org.poirsouille;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.zip.CRC32;
 
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Binder;
+import android.os.Environment;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.EditText;
 
 public class TincdService extends Service implements ICallback
 {
 	static final String TAG = "tincd";
 	static final String TINCBIN = "tincd";
 	private static final String PIDFILE = "tinc.pid";
+	String _configPath;
 	// Unique Identification Number for the Notification.
 	private int NOTIFICATION = R.string.local_service_started;
 	private boolean _started = false;
 	public boolean _debug = false;
 	private int _debugLvl = 2;
-	public ArrayList<String> _output = new ArrayList<String>();
+	//public ArrayList<String> _output = new ArrayList<String>();
+	public List<String> _output = Collections.synchronizedList(new LinkedList<String>());
+	SharedPreferences _sharedPref;
+	public int _maxLogSize = 1000;
+	private OnSharedPreferenceChangeListener _prefChangeListener;
 	
 	public ICallback _callback = null;
 
@@ -85,7 +96,7 @@ public class TincdService extends Service implements ICallback
             String line;
             while ((line = shellOutput.readLine()) != null) 
             {
-                Log.d(TAG, "command output: " + line);
+                //Log.d(TAG, "command output: " + line);
                 
                 if (ioCallBack != null)
                 {
@@ -104,10 +115,38 @@ public class TincdService extends Service implements ICallback
         return output;
     }
     
+    public static String ToString(ArrayList<String> iList)
+    {
+    	String aRes = "";
+    	synchronized(iList)
+    	{
+			for (String aLine : iList)
+			{
+				aRes += aLine + "\n";
+			}
+    	}
+		return aRes;
+    }
+    
+    public static String ToString(List<String> iList)
+    {
+    	String aRes = "";
+    	synchronized(iList)
+    	{
+			for (String aLine : iList)
+			{
+				aRes += aLine + "\n";
+			}
+    	}
+		return aRes;
+    }
+    
     public void startTinc() 
     {
     	if (! _started)
     	{
+	    	_configPath = _sharedPref.getString(getResources().getString(R.string.pref_key_config_path), Environment.getExternalStorageDirectory().getPath() + "/tinc/vpn");
+	    			
 			// Start tincd in a dedicated thread
 	        new Thread(new Runnable() 
 	        {
@@ -132,7 +171,7 @@ public class TincdService extends Service implements ICallback
 	    	    	_started = true;
 	    	    	_debug = false;
 	            	// Use exec to replace shell with executable
-	            	TincdService.run("su", "exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c /data/tinc/vpn --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
+	            	TincdService.run("su", "exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
 	            	// Process returns only when ended
 	            	_started = false;
 	                Log.d(TAG, "End of tincd thread");
@@ -241,13 +280,15 @@ public class TincdService extends Service implements ICallback
     	return _started;
     }
     
-    public void signal(String iSigType)
+    public String signal(String iSigType)
     {
+    	String aRes ="";
     	int aPid;
     	if (_started && (aPid = getPid()) != 0)
     	{
-    		run("su", "kill -" + iSigType +" " + aPid);
+    		aRes = ToString(run("su", "kill -" + iSigType +" " + aPid));
     	}
+    	return aRes;
     }
     
     public void toggleDebug()
@@ -269,6 +310,27 @@ public class TincdService extends Service implements ICallback
 
     public void onCreate()
     {
+    	_sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+    	// Refresh local preferences when there are some updates - keep listener in a class member to avoid GC 
+    	// (see http://stackoverflow.com/questions/2542938/sharedpreferences-onsharedpreferencechangelistener-not-being-called-consistently)
+    	_prefChangeListener = new OnSharedPreferenceChangeListener()
+    	{
+			public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+			{
+				refreshPrefs();
+			}
+    	};
+    	_sharedPref.registerOnSharedPreferenceChangeListener(_prefChangeListener);
+    	// Refresh at startup as well
+    	refreshPrefs();
+    }
+    
+    private void refreshPrefs()
+    {
+    	Log.d(TAG, "Refreshing preferences");
+    	_configPath = _sharedPref.getString(getResources().getString(R.string.pref_key_config_path), 
+    			Environment.getExternalStorageDirectory().getPath() + "/tinc/vpn");
+    	_maxLogSize = Integer.parseInt(_sharedPref.getString(getResources().getString(R.string.pref_key_max_log_size), "" + _maxLogSize));
     }
     
     public void onDestroy ()
@@ -299,13 +361,39 @@ public class TincdService extends Service implements ICallback
     	startForeground(NOTIFICATION, notification);
     }
 
-	public void call(String iData)
-	{
-		_output.add(iData);
+    public void clearOutput()
+    {
+		_output.clear();
 		// Notify activity callback if any
 		if (_callback != null)
 		{
-			_callback.call(iData);
+			_callback.call(null);
+		}
+    }
+
+    public void call(String iData)
+	{
+		Date aDate = new Date();
+		SimpleDateFormat aFormat = new SimpleDateFormat("hh:mm:ss");
+		String aTxt = aFormat.format(aDate) + " " + iData;
+		// Limit log size
+		while (_maxLogSize > 0 && _output.size() >= _maxLogSize)
+		{
+			_output.remove(0);
+		}
+		_output.add(aTxt);
+		// Notify activity callback if any
+		if (_callback != null)
+		{
+			_callback.call(aTxt);
 		}
 	}
+    
+    public String getStatus()
+    {
+    	String aStatus = signal("SIGUSR1");
+    	aStatus += signal("SIGUSR2");
+    	aStatus += ToString(run("su", "ip route"));
+		return aStatus;
+    }
 }

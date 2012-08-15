@@ -11,11 +11,13 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnLayoutChangeListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -78,6 +80,41 @@ public class TincActivity extends Activity
         _logTextView = (TextView)findViewById(R.id.logTextView);
         _startStopButton = (Button)findViewById(R.id.button1);
         _debugButton = (ToggleButton)findViewById(R.id.debugButton);
+        
+        // Ensure to scroll down on each text change
+        _logTextView.addOnLayoutChangeListener(new OnLayoutChangeListener()
+        {
+			public void onLayoutChange(View v, int left, int top, int right,
+					int bottom, int oldLeft, int oldTop, int oldRight,
+					int oldBottom)
+			{
+				_scroll.smoothScrollTo(0, _logTextView.getHeight());
+			}
+        	
+        });
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        MenuInflater aInflater = getMenuInflater();
+        aInflater.inflate(R.menu.menu, menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) 
+    {
+        // Handle item selection
+        switch (item.getItemId()) 
+        {
+            case R.id.settings:
+            	Intent aIntent = new Intent(this, SettingsActivity.class);
+            	startActivity(aIntent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
     
     @Override
@@ -147,20 +184,30 @@ public class TincActivity extends Activity
     
     private void updateLog(String iData)
     {
+    	// Limit log size
+    	if (_logTextView.getLineCount() > 2 * _service._maxLogSize)
+    	{
+    		// Force full refresh from truncated
+    		_logInitialized = false;
+    	}
         // Update log
 		if (iData != null && _logInitialized)
 			_logTextView.append(iData + "\n");
 		else
 		{
-			for (String aLine : _service._output)
-			{
-				_logTextView.append(aLine + "\n");
-			}
+			_logTextView.setText(TincdService.ToString(_service._output));
 			_logInitialized = true;
 		}
-		// Scroll down
-		_scroll.smoothScrollTo(0, _logTextView.getHeight());
-
+    }
+    
+    public void clickClear(View iView)
+    {
+    	_service.clearOutput();
+    }
+    
+    public void clickStatus(View iView)
+    {
+    	_logTextView.append(_service.getStatus() + "\n");
     }
     
     
