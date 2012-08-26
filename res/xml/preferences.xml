@@ -4,17 +4,18 @@
     <PreferenceCategory android:title="@string/pref_title_general_settings" >
         <EditTextPreference
             android:defaultValue="/sdcard/tinc/vpn"
-            android:key="@string/pref_key_config_path"
+            android:key="pref_key_config_path"
             android:summary="@string/config_path_details"
             android:title="@string/config_path" />
         <EditTextPreference
             android:defaultValue="1000"
-            android:key="@string/pref_key_max_log_size"
+            android:key="pref_key_max_log_size"
             android:numeric="integer"
             android:summary="@string/max_log_size_details"
             android:title="@string/max_log_size" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/pref_title_current_config" android:key="@string/pref_key_config">
+    <PreferenceCategory android:title="@string/pref_title_current_config" android:key="pref_key_config">
+    </PreferenceCategory><PreferenceCategory android:title="@string/pref_title_hosts" android:key="pref_key_hosts">
     </PreferenceCategory>
 
 </PreferenceScreen>

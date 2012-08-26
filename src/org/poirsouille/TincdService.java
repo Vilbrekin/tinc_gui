@@ -145,7 +145,7 @@ public class TincdService extends Service implements ICallback
     {
     	if (! _started)
     	{
-	    	_configPath = _sharedPref.getString(getResources().getString(R.string.pref_key_config_path), Environment.getExternalStorageDirectory().getPath() + "/tinc/vpn");
+	    	_configPath = _sharedPref.getString("pref_key_config_path", "");
 	    			
 			// Start tincd in a dedicated thread
 	        new Thread(new Runnable() 
@@ -328,9 +328,8 @@ public class TincdService extends Service implements ICallback
     private void refreshPrefs()
     {
     	Log.d(TAG, "Refreshing preferences");
-    	_configPath = _sharedPref.getString(getResources().getString(R.string.pref_key_config_path), 
-    			Environment.getExternalStorageDirectory().getPath() + "/tinc/vpn");
-    	_maxLogSize = Integer.parseInt(_sharedPref.getString(getResources().getString(R.string.pref_key_max_log_size), "" + _maxLogSize));
+    	_configPath = _sharedPref.getString("pref_key_config_path", _configPath);
+    	_maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
     }
     
     public void onDestroy ()
