@@ -2,12 +2,11 @@
 <LinearLayout android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
-
+
     <TextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="huh_u"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <LinearLayout
@@ -20,13 +19,15 @@
             android:layout_height="wrap_content"
             android:onClick="click"
             android:text="@string/start" />
-
+
         <ToggleButton
             android:id="@+id/debugButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="debugClick"
-            android:text="@string/debug" />
+            android:text="@string/debug"
+            android:textOff="@string/debug"
+            android:textOn="@string/debug" />
 
         <Button
             android:id="@+id/button2"

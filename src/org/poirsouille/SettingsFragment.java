@@ -17,6 +17,7 @@ import android.util.Log;
 public class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener
 {
 	SharedPreferences _sharedPreferences;
+	static final String CONF_FILE = "tinc.conf";
 	
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -43,7 +44,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 		
     	// Look for existing configuration files
     	String aConfigDir = _sharedPreferences.getString("pref_key_config_path", "<None>");
-    	File aConfFile = new File(aConfigDir + "/tinc.conf");
+    	File aConfFile = new File(aConfigDir + "/" + CONF_FILE);
     	if (aConfFile.exists())
     	{
     		// Found main configuration file
@@ -62,7 +63,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         	Preference aPref = new Preference(getActivity());
         	aPref.setPersistent(false);
         	aPref.setTitle("No valid configuration found");
-        	aPref.setSummary("Can't find tinc.conf in " + aConfigDir);
+        	aPref.setSummary("Can't find " + CONF_FILE + " in " + aConfigDir);
         	aGroup.addPreference(aPref);
     	}
     }
@@ -111,7 +112,6 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     	Preference aPref = new Preference(getActivity());
     	aPref.setPersistent(false);
     	aPref.setTitle(iFile.getName());
-    	//aPref.setSummary("Can't find tinc.conf in " + aConfigDir);
     	aPref.setIcon(iIconResId);//numberpicker_up_disabled_holo_dark
     	// Use an intent to open with external text editor
     	Intent aIntent = new Intent();

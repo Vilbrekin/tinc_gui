@@ -20,5 +20,6 @@
     <string name="pref_title_general_settings">General settings</string>
     <string name="pref_title_current_config">Current configuration</string>
     <string name="pref_title_hosts">Hosts</string>
+    <string name="current_path">Current path: </string>
 
 </resources>

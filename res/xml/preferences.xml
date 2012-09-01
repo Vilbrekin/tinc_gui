@@ -2,8 +2,8 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <PreferenceCategory android:title="@string/pref_title_general_settings" >
-        <EditTextPreference
-            android:defaultValue="/sdcard/tinc/vpn"
+        <org.poirsouille.FilePreference
+            android:defaultValue="/"
             android:key="pref_key_config_path"
             android:summary="@string/config_path_details"
             android:title="@string/config_path" />
