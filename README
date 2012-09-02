@@ -1,0 +1,10 @@
+Tinc GUI for android.
+
+Tinc is a peer to peer VPN dameon.
+
+Using tinc daemon, cross-compiled for android.
+See https://github.com/Vilbrekin/tinc and original web site http://tinc-vpn.org/.
+
+Copyright (C) 2012 Vilbrekin <vilbrekin@gmail.com>
+Distributed under GPLv3.
+
