@@ -426,7 +426,7 @@ public class TincdService extends Service implements ICallback
     public void call(String iData)
 	{
 		Date aDate = new Date();
-		SimpleDateFormat aFormat = new SimpleDateFormat("hh:mm:ss");
+		SimpleDateFormat aFormat = new SimpleDateFormat("HH:mm:ss");
 		String aTxt = aFormat.format(aDate) + " " + iData;
 		// Limit log size
 		while (_maxLogSize > 0 && _output.size() >= _maxLogSize)
