@@ -14,6 +14,7 @@
             android:summary="@string/max_log_size_details"
             android:title="@string/max_log_size" />
         <ListPreference android:defaultValue="2" android:key="pref_key_debug_level" android:title="@string/pref_title_debug_level" android:entries="@array/debug_lvl_entries" android:entryValues="@array/debug_lvl_values"/>
+        <CheckBoxPreference android:defaultValue="true" android:key="pref_key_super_user" android:title="@string/pref_title_super_user"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_title_current_config" android:key="pref_key_config">
     </PreferenceCategory><PreferenceCategory android:title="@string/pref_title_hosts" android:key="pref_key_hosts">

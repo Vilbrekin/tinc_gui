@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.DialogPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
@@ -148,7 +149,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     	Preference aPref = new Preference(getActivity());
     	aPref.setPersistent(false);
     	aPref.setTitle(iFile.getName());
-    	aPref.setIcon(iIconResId);//numberpicker_up_disabled_holo_dark
+    	aPref.setIcon(iIconResId);
     	// Use an intent to open with external text editor
     	Intent aIntent = new Intent();
     	aIntent.setAction(android.content.Intent.ACTION_VIEW);
@@ -197,7 +198,11 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     {
     	Log.d(TincdService.TAG,"Pref changed: " + key);
         Preference pref = findPreference(key);
-        pref.setSummary(sharedPreferences.getString(key, "<None>"));
+        if (!(pref instanceof CheckBoxPreference))
+        {
+            // Update summary with current value
+            pref.setSummary(sharedPreferences.getString(key, "<None>"));
+        }
         if (key.equals("pref_key_config_path"))
         	updateConfig();
     }

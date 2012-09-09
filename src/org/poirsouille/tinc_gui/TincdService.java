@@ -55,6 +55,7 @@ public class TincdService extends Service implements ICallback
 	private boolean _started = false;
 	public boolean _debug = false;
 	private int _debugLvl = 2;
+	private boolean _useSU = true;
 	public List<String> _output = Collections.synchronizedList(new LinkedList<String>());
 	SharedPreferences _sharedPref;
 	public int _maxLogSize = 1000;
@@ -79,18 +80,31 @@ public class TincdService extends Service implements ICallback
         }
     }
     
+   /**
+    * Execute given command, with either su or sh as shell. 
+    * @param command
+    * @param ioCallBack
+    * @return
+    */
+    public ArrayList<String> run(String command, ICallback ioCallBack) 
+    {
+        String aShell = "su";
+        if (! _useSU)
+            aShell = "sh";
+        return Run(aShell, new String[] {command}, ioCallBack);
+    }
 	
-    public static ArrayList<String> run(String shell, String command) 
+    public static ArrayList<String> Run(String shell, String command) 
     {
-        return run(shell, new String[] {command}, null);
+        return Run(shell, new String[] {command}, null);
     }
     
-    public static ArrayList<String> run(String shell, String command, ICallback ioCallBack) 
+    public static ArrayList<String> Run(String shell, String command, ICallback ioCallBack) 
     {
-        return run(shell, new String[] {command}, ioCallBack);
+        return Run(shell, new String[] {command}, ioCallBack);
     }
     
-    public static ArrayList<String> run(String shell, String[] commands, ICallback ioCallBack) 
+    public static ArrayList<String> Run(String shell, String[] commands, ICallback ioCallBack) 
     {
         ArrayList<String> output = new ArrayList<String>();
 
@@ -103,7 +117,7 @@ public class TincdService extends Service implements ICallback
 
             for (String command : commands) 
             {
-                Log.i(TAG, "command: " + command);
+                Log.i(TAG, "Shell: " + shell + "; command: " + command);
                 shellInput.write((command + " 2>&1\n").getBytes());
             }
 
@@ -113,8 +127,6 @@ public class TincdService extends Service implements ICallback
             String line;
             while ((line = shellOutput.readLine()) != null) 
             {
-                //Log.d(TAG, "command output: " + line);
-                
                 // Send output either to callback or to output list
                 if (ioCallBack != null)
                 {
@@ -175,7 +187,7 @@ public class TincdService extends Service implements ICallback
 	    	    	if ((aPid = getPid()) != 0)
 	    	    	{
 	    	    		// Kill old running daemon if any
-	    	    		TincdService.run("su", "kill " + aPid + " || rm " + getFileStreamPath(PIDFILE));
+	    	    		TincdService.this.run("kill " + aPid + " || rm " + getFileStreamPath(PIDFILE), null);
 	    	    		try
 						{
 							Thread.sleep(500);
@@ -188,7 +200,8 @@ public class TincdService extends Service implements ICallback
 	    	    	_started = true;
 	    	    	_debug = false;
 	            	// Use exec to replace shell with executable
-	            	TincdService.run("su", "exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
+	            	//TincdService.Run("su", "exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
+                    TincdService.this.run("exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
 	            	// Process returns only when ended
 	            	_started = false;
 	                Log.d(TAG, "End of tincd thread");
@@ -205,7 +218,7 @@ public class TincdService extends Service implements ICallback
 		{
     		int aPid = getPid();
         	if (aPid != 0)
-        		run("su", "kill " + aPid + " || rm " + getFileStreamPath(PIDFILE));
+        		run("kill " + aPid + " || rm " + getFileStreamPath(PIDFILE), null);
 		}
         _debug = false;
     	stopForeground(true);
@@ -318,7 +331,7 @@ public class TincdService extends Service implements ICallback
     	int aPid;
     	if (_started && (aPid = getPid()) != 0)
     	{
-    		aRes = ToString(run("su", "kill -" + iSigType +" " + aPid));
+    		aRes = ToString(run("kill -" + iSigType +" " + aPid, null));
     	}
     	return aRes;
     }
@@ -369,6 +382,7 @@ public class TincdService extends Service implements ICallback
     	_configPath = _sharedPref.getString("pref_key_config_path", _configPath);
     	_maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
     	_debugLvl = Integer.parseInt(_sharedPref.getString("pref_key_debug_level", "" + _debugLvl));
+    	_useSU = _sharedPref.getBoolean("pref_key_super_user", _useSU);
     }
     
     public void onDestroy ()
@@ -431,7 +445,7 @@ public class TincdService extends Service implements ICallback
     {
     	String aStatus = signal("SIGUSR1");
     	aStatus += signal("SIGUSR2");
-    	aStatus += ToString(run("su", "ip route"));
+    	aStatus += ToString(run("ip route", null));
 		return aStatus;
     }
 }
