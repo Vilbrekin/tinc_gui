@@ -15,10 +15,11 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.poirsouille;
+package org.poirsouille.tinc_gui;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,7 +40,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Binder;
-import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -94,7 +94,8 @@ public class TincdService extends Service implements ICallback
     {
         ArrayList<String> output = new ArrayList<String>();
 
-        try {
+        try
+        {
             Process process = Runtime.getRuntime().exec(shell);
 
             BufferedOutputStream shellInput = new BufferedOutputStream(process.getOutputStream());
@@ -114,6 +115,7 @@ public class TincdService extends Service implements ICallback
             {
                 //Log.d(TAG, "command output: " + line);
                 
+                // Send output either to callback or to output list
                 if (ioCallBack != null)
                 {
                 	ioCallBack.call(line);
@@ -125,6 +127,7 @@ public class TincdService extends Service implements ICallback
         catch (IOException e)
 		{
 			// TODO Auto-generated catch block
+            Log.e(TAG, "Can't execute shell: " + shell);
 			e.printStackTrace();
 		}
 
@@ -209,7 +212,10 @@ public class TincdService extends Service implements ICallback
         stopSelf();
         Log.d(TAG, "killed");
     }
-    
+ 
+   /**
+    * Install tincd binary on file system if needed (either it does not exist yet, or it's different from the bindled one). 
+    */
     void installTincd()
     {
         try
@@ -221,7 +227,8 @@ public class TincdService extends Service implements ICallback
 	        //read the text file as a stream, into the buffer  
 			aIS.read(buffer);
 	        aIS.close();
-	        if(getFileStreamPath(TINCBIN).exists())
+	        File aTincBinFile = getFileStreamPath(TINCBIN);
+	        if(aTincBinFile.exists())
         	{
         		InputStream aIS2 = openFileInput(TINCBIN);
         		// Compare files sizes first
@@ -250,8 +257,13 @@ public class TincdService extends Service implements ICallback
 		        //Close the Input and Output streams  
 		    	aOS.close();  
 		        
-		        // Set it as executable
-		        TincdService.run("su", "chmod 770 " + getFileStreamPath(TINCBIN));
+        	}
+        	
+        	// Ensure binary is executable
+        	if (! aTincBinFile.canExecute())
+        	{
+                // Set it as executable
+        	    aTincBinFile.setExecutable(true, false);
         	}
 		} 
         catch (IOException e)
@@ -295,6 +307,11 @@ public class TincdService extends Service implements ICallback
     	return _started;
     }
     
+   /**
+    * Send given signal to the daemon. 
+    * @param iSigType
+    * @return
+    */
     public String signal(String iSigType)
     {
     	String aRes ="";
@@ -306,6 +323,9 @@ public class TincdService extends Service implements ICallback
     	return aRes;
     }
     
+   /**
+    * Toggle debug level 5 on/off by sending SIGINT to the daemon. 
+    */
     public void toggleDebug()
     {
     	signal("SIGINT");

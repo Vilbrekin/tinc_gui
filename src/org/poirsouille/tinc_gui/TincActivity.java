@@ -15,11 +15,11 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.poirsouille;
+package org.poirsouille.tinc_gui;
 
 import java.io.IOException;
 
-import org.poirsouille.TincdService.LocalBinder;
+import org.poirsouille.tinc_gui.TincdService.LocalBinder;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -42,7 +42,6 @@ import android.widget.ToggleButton;
 public class TincActivity extends Activity 
 {
     TincdService _service;
-    boolean _bound = false;
     TextView _txtView;
     ScrollView _scroll;
     TextView _logTextView;
@@ -60,7 +59,7 @@ public class TincActivity extends Activity
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             LocalBinder binder = (LocalBinder) service;
             _service = binder.getService();
-            _bound = true;
+            Log.d(TincdService.TAG, "Service connected");
             _service._callback = new ICallback() 
             {
             	public void call(final String iData)
@@ -82,7 +81,8 @@ public class TincActivity extends Activity
         //@Override
         public void onServiceDisconnected(ComponentName arg0) 
         {
-        	_bound = false;
+            Log.d(TincdService.TAG, "Service disconnected");
+            _service = null;
         }
     };
     
@@ -156,17 +156,16 @@ public class TincActivity extends Activity
     {
         super.onStop();
         // Unbind from the service
-        if (_bound) 
+        if (_service != null) 
         {
             unbindService(_connection);
             _service._callback = null;
-            _bound = false;
         }
     }
     
     public void click(View view) throws IOException 
     {
-        if (! _service.isStarted())
+        if (_service == null || ! _service.isStarted())
         {
         	Intent intent = new Intent(this,TincdService.class); 
         	startService(intent);
@@ -176,19 +175,19 @@ public class TincActivity extends Activity
         	Log.d(TincdService.TAG, "Requesting stop");
         	_service.stopTincd();
         }
-        //updateStatus();
-
     }
     
     public void debugClick(View view) throws IOException 
     {
-    	_service.toggleDebug();
+        if (_service != null) 
+        {
+            _service.toggleDebug();
+        }
     }
     
     private void updateStatus()
     {
-    	//Log.d(TincdService.TAG, "Updating status");
-        if (_service.isStarted())
+        if (_service != null && _service.isStarted())
         {
         	_txtView.setText("Started");
         	_startStopButton.setText(getText(R.string.stop));
@@ -198,35 +197,43 @@ public class TincActivity extends Activity
         	_txtView.setText("Stopped");
         	_startStopButton.setText(getText(R.string.start));
         }
-        _debugButton.setChecked(_service._debug);
+        if (_service != null) 
+            _debugButton.setChecked(_service._debug);
+        else
+            _debugButton.setChecked(false);
     }
     
     private void updateLog(String iData)
     {
-    	// Limit log size
-    	if (_logTextView.getLineCount() > 2 * _service._maxLogSize)
-    	{
-    		// Force full refresh from truncated
-    		_logInitialized = false;
-    	}
-        // Update log
-		if (iData != null && _logInitialized)
-			_logTextView.append(iData + "\n");
-		else
-		{
-			_logTextView.setText(TincdService.ToString(_service._output));
-			_logInitialized = true;
-		}
+        if (_service != null)
+        {
+        	// Limit log size
+        	if (_logTextView.getLineCount() > 2 * _service._maxLogSize)
+        	{
+        		// Force full refresh from truncated
+        		_logInitialized = false;
+        	}
+            // Update log
+    		if (iData != null && _logInitialized)
+    			_logTextView.append(iData + "\n");
+    		else
+    		{
+    			_logTextView.setText(TincdService.ToString(_service._output));
+    			_logInitialized = true;
+    		}
+        }
     }
     
     public void clickClear(View iView)
     {
-    	_service.clearOutput();
+        if (_service != null) 
+            _service.clearOutput();
     }
     
     public void clickStatus(View iView)
     {
-    	_logTextView.append(_service.getStatus() + "\n");
+        if (_service != null) 
+            _logTextView.append(_service.getStatus() + "\n");
     }
     
     

@@ -15,7 +15,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.poirsouille;
+package org.poirsouille.tinc_gui;
 
 public interface ICallback 
 {
