@@ -56,7 +56,8 @@ public class TincdService extends Service implements ICallback
 	public boolean _debug = false;
 	private int _debugLvl = 2;
 	private boolean _useSU = true;
-	public List<String> _output = Collections.synchronizedList(new LinkedList<String>());
+	// Temporary tincd output buffer, used when activity is not in foreground
+	private List<String> _tempOutput = Collections.synchronizedList(new LinkedList<String>());
 	SharedPreferences _sharedPref;
 	public int _maxLogSize = 1000;
 	private OnSharedPreferenceChangeListener _prefChangeListener;
@@ -413,34 +414,51 @@ public class TincdService extends Service implements ICallback
     	startForeground(NOTIFICATION, notification);
     }
 
-    public void clearOutput()
+   /**
+    * Pop temporary output: fetch it and clear internal list. 
+    * @return
+    */
+    public List<String> popOutput()
     {
-		_output.clear();
-		// Notify activity callback if any
-		if (_callback != null)
-		{
-			_callback.call(null);
-		}
+        List<String> aRes = null;
+        if (! _tempOutput.isEmpty())
+        {
+            aRes = new LinkedList<String>(_tempOutput);
+            _tempOutput.clear();
+        }
+        return aRes;
     }
 
+   /**
+    * Callback implementation. Used when new line is printed by the service.
+    * Either forwards it to activity's callback (if available, on the foreground), or stores the result in temporary output. 
+    */
     public void call(String iData)
 	{
 		Date aDate = new Date();
 		SimpleDateFormat aFormat = new SimpleDateFormat("HH:mm:ss");
 		String aTxt = aFormat.format(aDate) + " " + iData;
-		// Limit log size
-		while (_maxLogSize > 0 && _output.size() >= _maxLogSize)
-		{
-			_output.remove(0);
-		}
-		_output.add(aTxt);
 		// Notify activity callback if any
 		if (_callback != null)
 		{
 			_callback.call(aTxt);
 		}
+		else
+		{
+		    // Activity is not available. Store temporary output.
+	        _tempOutput.add(aTxt);
+	        // Limit log size
+	        while (_maxLogSize > 0 && _tempOutput.size() >= _maxLogSize)
+	        {
+	            _tempOutput.remove(0);
+	        }
+		}
 	}
     
+   /**
+    * Get tincd status and routing table. 
+    * @return
+    */
     public String getStatus()
     {
     	String aStatus = signal("SIGUSR1");

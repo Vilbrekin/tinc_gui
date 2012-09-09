@@ -18,6 +18,7 @@
 package org.poirsouille.tinc_gui;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.poirsouille.tinc_gui.TincdService.LocalBinder;
 
@@ -39,7 +40,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-public class TincActivity extends Activity 
+public class TincActivity extends Activity implements ICallback
 {
     TincdService _service;
     TextView _txtView;
@@ -47,8 +48,7 @@ public class TincActivity extends Activity
     TextView _logTextView;
     Button _startStopButton;
     ToggleButton _debugButton;
-	boolean _logInitialized = false;
-
+	
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection _connection = new ServiceConnection() 
     {
@@ -60,20 +60,7 @@ public class TincActivity extends Activity
             LocalBinder binder = (LocalBinder) service;
             _service = binder.getService();
             Log.d(TincdService.TAG, "Service connected");
-            _service._callback = new ICallback() 
-            {
-            	public void call(final String iData)
-            	{
-            		_logTextView.post(new Runnable()
-            		{
-						public void run()
-						{	
-							updateLog(iData);
-							updateStatus();
-						}
-            		});
-            	}
-            };
+            _service._callback = TincActivity.this;
             updateLog(null);
             updateStatus();
         }
@@ -163,6 +150,28 @@ public class TincActivity extends Activity
         }
     }
     
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        if (_service != null) 
+        {
+            // Unset service callback
+            _service._callback = null;
+        }
+    }
+    
+    @Override
+    protected void onResume() 
+    {
+        super.onResume();
+        if (_service != null) 
+        {
+            // Set activity as service callback
+            _service._callback = this;
+        }
+    }
+    
     public void click(View view) throws IOException 
     {
         if (_service == null || ! _service.isStarted())
@@ -207,27 +216,46 @@ public class TincActivity extends Activity
     {
         if (_service != null)
         {
-        	// Limit log size
-        	if (_logTextView.getLineCount() > 2 * _service._maxLogSize)
-        	{
-        		// Force full refresh from truncated
-        		_logInitialized = false;
-        	}
-            // Update log
-    		if (iData != null && _logInitialized)
-    			_logTextView.append(iData + "\n");
-    		else
-    		{
-    			_logTextView.setText(TincdService.ToString(_service._output));
-    			_logInitialized = true;
-    		}
+            List<String> aTempOut = _service.popOutput();
+            if (aTempOut != null)
+            {
+                Log.d(TincdService.TAG, "Popping temporary logs (" + aTempOut.size() + " lines)");
+                _logTextView.append(TincdService.ToString(aTempOut));
+            }
         }
+        if (iData != null)
+            _logTextView.append(iData + "\n");
+        
+        // Limit log size (allow 10% to avoid doing it on each iteration)
+        if (_service != null && _logTextView.getLineCount() > 1.1 * _service._maxLogSize) 
+        {
+            int excessLineNumber = _logTextView.getLineCount() - _service._maxLogSize;
+            Log.d(TincdService.TAG, "Truncating logs (deleting " + excessLineNumber + " lines)");
+            int eolIndex = -1;
+            CharSequence charSequence = _logTextView.getText();
+            for(int i = 0; i < excessLineNumber; i++) 
+            {
+                do 
+                {
+                    eolIndex++;
+                } while(eolIndex < charSequence.length() && charSequence.charAt(eolIndex) != '\n');             
+            }
+            if (eolIndex < charSequence.length()) 
+            {
+                _logTextView.getEditableText().delete(0, eolIndex+1);
+            }
+            else 
+            {
+                _logTextView.setText("");
+            }
+        }
+            
+
     }
     
     public void clickClear(View iView)
     {
-        if (_service != null) 
-            _service.clearOutput();
+        _logTextView.setText("");
     }
     
     public void clickStatus(View iView)
@@ -236,7 +264,34 @@ public class TincActivity extends Activity
             _logTextView.append(_service.getStatus() + "\n");
     }
     
+    @Override
+    protected void onSaveInstanceState(Bundle outState)
+    {
+        Log.d(TincdService.TAG, "onSaveInstanceState");
+        super.onSaveInstanceState(outState);
+        outState.putCharSequence("_logTextView", _logTextView.getText());
+    }
     
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        Log.d(TincdService.TAG, "onRestoreInstanceState");
+        super.onRestoreInstanceState(savedInstanceState);
+        _logTextView.setText(savedInstanceState.getCharSequence("_logTextView"));
+        // Append any text saved in service's internal buffer
+        updateLog(null);
+    }
 
+    public void call(final String iData)
+    {
+        _logTextView.post(new Runnable()
+        {
+            public void run()
+            {   
+                updateLog(iData);
+                updateStatus();
+            }
+        });
+    }
 }
 
