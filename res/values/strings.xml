@@ -21,5 +21,26 @@
     <string name="pref_title_current_config">Current configuration</string>
     <string name="pref_title_hosts">Hosts</string>
     <string name="current_path">Current path: </string>
+    <string name="about_text"> <![CDATA[
+ <p>
+Tinc GUI for android.<br/>
+<a href="http://tinc_gui.poirsouille.org/">http://tinc_gui.poirsouille.org/</a>.
+</p><p>
+Tinc is a peer to peer VPN daemon.
+</p><p>
+Using tinc daemon, cross-compiled for android.<br/>
+See <a href="https://github.com/Vilbrekin/tinc">https://github.com/Vilbrekin/tinc</a> and 
+original web site <a href="http://tinc-vpn.org/">http://tinc-vpn.org/</a>.
+</p><p>
+Copyright (C) 2012 Vilbrekin <vilbrekin@gmail.com><br/>
+Distributed under GPLv3.
+</p><p>
+Please consider <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=L8H64G57CZRZA">
+making a donation</a> if you like this program.
 
+
+ </p>
+ ]]></string>
+    <string name="about">About</string>
+    
 </resources>

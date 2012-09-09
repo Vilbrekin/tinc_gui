@@ -126,9 +126,17 @@ public class TincActivity extends Activity
         switch (item.getItemId()) 
         {
             case R.id.settings:
+            {
             	Intent aIntent = new Intent(this, SettingsActivity.class);
             	startActivity(aIntent);
                 return true;
+            }
+            case R.id.about:
+            {
+                Intent aIntent = new Intent(this, AboutActivity.class);
+                startActivity(aIntent);
+                return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -154,12 +162,6 @@ public class TincActivity extends Activity
             _service._callback = null;
             _bound = false;
         }
-    }
-    
-    @Override
-    protected void onResume()
-    {
-    	super.onResume();
     }
     
     public void click(View view) throws IOException 

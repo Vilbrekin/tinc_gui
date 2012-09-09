@@ -48,6 +48,9 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         _sharedPreferences = getPreferenceScreen().getSharedPreferences();
     }
     
+   /**
+    * Create/replace dynamic menu items for tinc configuration. 
+    */
     private void updateConfig()
     {
     	Log.d(TincdService.TAG, "Updating configuration");
@@ -85,6 +88,11 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     	}
     }
     
+   /**
+    * Add hosts configurations, with up/down scripts as well. 
+    * @param iHostsDir
+    * @param oGroup
+    */
     private void addHostsToGroup(File iHostsDir, PreferenceGroup oGroup)
     {
         File[] aChildren = iHostsDir.listFiles();
@@ -100,6 +108,11 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         }
     }
     
+   /**
+    * Build up/down menu items for tinc standard config files.  
+    * @param iRootDir
+    * @param oGroup
+    */
     private void addStandardConfig(File iRootDir, PreferenceGroup oGroup)
     {
     	final String[] kFilesPfx = {"tinc", "subnet", "host"};
@@ -124,6 +137,12 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 			addFilePreference(aDownFile, oGroup, R.drawable.ic_menu_stop);
     }
     
+   /**
+    * Low-level addition of a item to the menu. 
+    * @param iFile
+    * @param oGroup
+    * @param iIconResId
+    */
     private void addFilePreference(File iFile, PreferenceGroup oGroup, int iIconResId)
     {
     	Preference aPref = new Preference(getActivity());
@@ -139,6 +158,10 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     	oGroup.addPreference(aPref);
     }
     
+   /**
+    * Update all summaries with values content. 
+    * @param iPrefGrp
+    */
     private void updateSummaries(PreferenceGroup iPrefGrp)
     {
     	for (int i = 0; i < iPrefGrp.getPreferenceCount(); ++ i)

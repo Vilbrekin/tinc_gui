@@ -20,6 +20,7 @@
         </activity>
         <service android:name=".TincdService"></service>
         <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".AboutActivity"></activity>
     </application>
 
 </manifest>
