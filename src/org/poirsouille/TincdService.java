@@ -55,7 +55,6 @@ public class TincdService extends Service implements ICallback
 	private boolean _started = false;
 	public boolean _debug = false;
 	private int _debugLvl = 2;
-	//public ArrayList<String> _output = new ArrayList<String>();
 	public List<String> _output = Collections.synchronizedList(new LinkedList<String>());
 	SharedPreferences _sharedPref;
 	public int _maxLogSize = 1000;
@@ -162,8 +161,6 @@ public class TincdService extends Service implements ICallback
     {
     	if (! _started)
     	{
-	    	_configPath = _sharedPref.getString("pref_key_config_path", "");
-	    			
 			// Start tincd in a dedicated thread
 	        new Thread(new Runnable() 
 	        {
@@ -207,6 +204,7 @@ public class TincdService extends Service implements ICallback
         	if (aPid != 0)
         		run("su", "kill " + aPid + " || rm " + getFileStreamPath(PIDFILE));
 		}
+        _debug = false;
     	stopForeground(true);
         stopSelf();
         Log.d(TAG, "killed");
@@ -342,11 +340,15 @@ public class TincdService extends Service implements ICallback
     	refreshPrefs();
     }
     
+   /**
+    * Refresh member variables from preferences screen. 
+    */
     private void refreshPrefs()
     {
     	Log.d(TAG, "Refreshing preferences");
     	_configPath = _sharedPref.getString("pref_key_config_path", _configPath);
     	_maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
+    	_debugLvl = Integer.parseInt(_sharedPref.getString("pref_key_debug_level", "" + _debugLvl));
     }
     
     public void onDestroy ()
