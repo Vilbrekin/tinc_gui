@@ -54,7 +54,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     */
     private void updateConfig()
     {
-    	Log.d(TincdService.TAG, "Updating configuration");
+    	Log.d(Tools.TAG, "Updating configuration");
     	
     	// Parent group
     	PreferenceGroup aGroup = (PreferenceGroup) getPreferenceScreen().findPreference("pref_key_config");
@@ -196,7 +196,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) 
     {
-    	Log.d(TincdService.TAG,"Pref changed: " + key);
+    	Log.d(Tools.TAG,"Pref changed: " + key);
         Preference pref = findPreference(key);
         if (!(pref instanceof CheckBoxPreference))
         {

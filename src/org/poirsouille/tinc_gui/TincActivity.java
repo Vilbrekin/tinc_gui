@@ -59,7 +59,7 @@ public class TincActivity extends Activity implements ICallback
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             LocalBinder binder = (LocalBinder) service;
             _service = binder.getService();
-            Log.d(TincdService.TAG, "Service connected");
+            Log.d(Tools.TAG, "Service connected");
             _service._callback = TincActivity.this;
             updateLog(null);
             updateStatus();
@@ -68,7 +68,7 @@ public class TincActivity extends Activity implements ICallback
         //@Override
         public void onServiceDisconnected(ComponentName arg0) 
         {
-            Log.d(TincdService.TAG, "Service disconnected");
+            Log.d(Tools.TAG, "Service disconnected");
             _service = null;
         }
     };
@@ -181,7 +181,7 @@ public class TincActivity extends Activity implements ICallback
         }
         else
         {
-        	Log.d(TincdService.TAG, "Requesting stop");
+        	Log.d(Tools.TAG, "Requesting stop");
         	_service.stopTincd();
         }
     }
@@ -219,8 +219,8 @@ public class TincActivity extends Activity implements ICallback
             List<String> aTempOut = _service.popOutput();
             if (aTempOut != null)
             {
-                Log.d(TincdService.TAG, "Popping temporary logs (" + aTempOut.size() + " lines)");
-                _logTextView.append(TincdService.ToString(aTempOut));
+                Log.d(Tools.TAG, "Popping temporary logs (" + aTempOut.size() + " lines)");
+                _logTextView.append(Tools.ToString(aTempOut));
             }
         }
         if (iData != null)
@@ -230,7 +230,7 @@ public class TincActivity extends Activity implements ICallback
         if (_service != null && _logTextView.getLineCount() > 1.1 * _service._maxLogSize) 
         {
             int excessLineNumber = _logTextView.getLineCount() - _service._maxLogSize;
-            Log.d(TincdService.TAG, "Truncating logs (deleting " + excessLineNumber + " lines)");
+            Log.d(Tools.TAG, "Truncating logs (deleting " + excessLineNumber + " lines)");
             int eolIndex = -1;
             CharSequence charSequence = _logTextView.getText();
             for(int i = 0; i < excessLineNumber; i++) 
@@ -267,7 +267,7 @@ public class TincActivity extends Activity implements ICallback
     @Override
     protected void onSaveInstanceState(Bundle outState)
     {
-        Log.d(TincdService.TAG, "onSaveInstanceState");
+        Log.d(Tools.TAG, "onSaveInstanceState");
         super.onSaveInstanceState(outState);
         outState.putCharSequence("_logTextView", _logTextView.getText());
     }
@@ -275,7 +275,7 @@ public class TincActivity extends Activity implements ICallback
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState)
     {
-        Log.d(TincdService.TAG, "onRestoreInstanceState");
+        Log.d(Tools.TAG, "onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
         _logTextView.setText(savedInstanceState.getCharSequence("_logTextView"));
         // Append any text saved in service's internal buffer

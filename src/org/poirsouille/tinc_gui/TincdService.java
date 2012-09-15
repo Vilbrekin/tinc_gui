@@ -17,7 +17,6 @@
 
 package org.poirsouille.tinc_gui;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -46,7 +44,6 @@ import android.util.Log;
 
 public class TincdService extends Service implements ICallback
 {
-	static final String TAG = "tincd";
 	static final String TINCBIN = "tincd";
 	private static final String PIDFILE = "tinc.pid";
 	String _configPath;
@@ -87,92 +84,14 @@ public class TincdService extends Service implements ICallback
     * @param ioCallBack
     * @return
     */
-    public ArrayList<String> run(String command, ICallback ioCallBack) 
+    public List<String> run(String command, ICallback ioCallBack) 
     {
         String aShell = "su";
         if (! _useSU)
             aShell = "sh";
-        return Run(aShell, new String[] {command}, ioCallBack);
+        return Tools.Run(aShell, new String[] {command}, ioCallBack);
     }
 	
-    public static ArrayList<String> Run(String shell, String command) 
-    {
-        return Run(shell, new String[] {command}, null);
-    }
-    
-    public static ArrayList<String> Run(String shell, String command, ICallback ioCallBack) 
-    {
-        return Run(shell, new String[] {command}, ioCallBack);
-    }
-    
-    public static ArrayList<String> Run(String shell, String[] commands, ICallback ioCallBack) 
-    {
-        ArrayList<String> output = new ArrayList<String>();
-
-        try
-        {
-            Process process = Runtime.getRuntime().exec(shell);
-
-            BufferedOutputStream shellInput = new BufferedOutputStream(process.getOutputStream());
-            BufferedReader shellOutput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            for (String command : commands) 
-            {
-                Log.i(TAG, "Shell: " + shell + "; command: " + command);
-                shellInput.write((command + " 2>&1\n").getBytes());
-            }
-
-            shellInput.write("exit\n".getBytes());
-            shellInput.flush();
-
-            String line;
-            while ((line = shellOutput.readLine()) != null) 
-            {
-                // Send output either to callback or to output list
-                if (ioCallBack != null)
-                {
-                	ioCallBack.call(line);
-                }
-                else
-                	output.add(line);
-            }
-        } 
-        catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-            Log.e(TAG, "Can't execute shell: " + shell);
-			e.printStackTrace();
-		}
-
-        return output;
-    }
-    
-    public static String ToString(ArrayList<String> iList)
-    {
-    	String aRes = "";
-    	synchronized(iList)
-    	{
-			for (String aLine : iList)
-			{
-				aRes += aLine + "\n";
-			}
-    	}
-		return aRes;
-    }
-    
-    public static String ToString(List<String> iList)
-    {
-    	String aRes = "";
-    	synchronized(iList)
-    	{
-			for (String aLine : iList)
-			{
-				aRes += aLine + "\n";
-			}
-    	}
-		return aRes;
-    }
-    
     public void startTinc() 
     {
     	if (! _started)
@@ -201,11 +120,10 @@ public class TincdService extends Service implements ICallback
 	    	    	_started = true;
 	    	    	_debug = false;
 	            	// Use exec to replace shell with executable
-	            	//TincdService.Run("su", "exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
                     TincdService.this.run("exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
 	            	// Process returns only when ended
 	            	_started = false;
-	                Log.d(TAG, "End of tincd thread");
+	                Log.d(Tools.TAG, "End of tincd thread");
 	                TincdService.this.stopTincd();
 	            }
 	        }).start();
@@ -224,7 +142,7 @@ public class TincdService extends Service implements ICallback
         _debug = false;
     	stopForeground(true);
         stopSelf();
-        Log.d(TAG, "killed");
+        Log.d(Tools.TAG, "killed");
     }
  
    /**
@@ -264,7 +182,7 @@ public class TincdService extends Service implements ICallback
         	}
         	if (aInstallNeeded)
         	{
-        		Log.i(TAG, "Installing tincd binary");
+        		Log.i(Tools.TAG, "Installing tincd binary");
 		    	FileOutputStream aOS = openFileOutput(TINCBIN, MODE_PRIVATE);
         		// Copy file from raw resources
 		    	aOS.write(buffer);
@@ -282,7 +200,6 @@ public class TincdService extends Service implements ICallback
 		} 
         catch (IOException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  
     }
@@ -312,7 +229,7 @@ public class TincdService extends Service implements ICallback
 		{
 			e.printStackTrace();
 		}
-    	Log.d(TAG, "Returning PID " + aPid);
+    	Log.d(Tools.TAG, "Returning PID " + aPid);
     	return aPid;
     }
     
@@ -332,7 +249,7 @@ public class TincdService extends Service implements ICallback
     	int aPid;
     	if (_started && (aPid = getPid()) != 0)
     	{
-    		aRes = ToString(run("kill -" + iSigType +" " + aPid, null));
+    		aRes = Tools.ToString(run("kill -" + iSigType +" " + aPid, null));
     	}
     	return aRes;
     }
@@ -350,7 +267,7 @@ public class TincdService extends Service implements ICallback
 	public int onStartCommand(Intent intent, int flags, int startId) 
     {
 	    startTinc();
-	    Log.d(TAG, "Service started");
+	    Log.d(Tools.TAG, "Service started");
 	    showNotification();
 	    // We want this service to continue running until it is explicitly
 	    // stopped, so return sticky.
@@ -379,7 +296,7 @@ public class TincdService extends Service implements ICallback
     */
     private void refreshPrefs()
     {
-    	Log.d(TAG, "Refreshing preferences");
+    	Log.d(Tools.TAG, "Refreshing preferences");
     	_configPath = _sharedPref.getString("pref_key_config_path", _configPath);
     	_maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
     	_debugLvl = Integer.parseInt(_sharedPref.getString("pref_key_debug_level", "" + _debugLvl));
@@ -389,7 +306,7 @@ public class TincdService extends Service implements ICallback
     public void onDestroy ()
     {
     	stopTincd();
-    	Log.d(TAG, "Service destroyed");
+    	Log.d(Tools.TAG, "Service destroyed");
     }
     
 	@Override
@@ -399,9 +316,10 @@ public class TincdService extends Service implements ICallback
 	}
 	
 	
-    /**
-     * Show a notification while this service is running.
-     */
+   /**
+    * Show a notification while this service is running.
+    */
+    @SuppressWarnings("deprecation")
     private void showNotification() 
     {
     	
@@ -463,7 +381,7 @@ public class TincdService extends Service implements ICallback
     {
     	String aStatus = signal("SIGUSR1");
     	aStatus += signal("SIGUSR2");
-    	aStatus += ToString(run("ip route", null));
+    	aStatus += Tools.ToString(run("ip route", null));
 		return aStatus;
     }
 }
