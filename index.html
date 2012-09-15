@@ -1,71 +1,95 @@
 <!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <title>Tinc GUI by Vilbrekin</title>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Tinc GUI : Android port of tinc VPN with basic GUI" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Tinc GUI</title>
   </head>
 
   <body>
-    <div id="container">
-      <div class="inner">
 
-        <header>
-          <h1>Tinc GUI</h1>
-          <h2>Android port of tinc VPN with basic GUI</h2>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Vilbrekin/tinc_gui">View on GitHub</a>
+
+          <h1 id="project_title">Tinc GUI</h1>
+          <h2 id="project_tagline">Android port of tinc VPN with basic GUI</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Vilbrekin/tinc_gui/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Vilbrekin/tinc_gui/tarball/master">Download this project as a tar.gz file</a>
+            </section>
         </header>
+    </div>
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/Vilbrekin/tinc_gui/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/Vilbrekin/tinc_gui/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/Vilbrekin/tinc_gui" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2>Welcome to Tinc GUI for Android home page.</h2>
 
-        <hr>
+<p>Tinc is an open source peer to peer VPN daemon. Find more information at <a href="http://www.tinc-vpn.org">http://www.tinc-vpn.org</a>.</p>
 
-        <section id="main_content">
-          <h3>Welcome to GitHub Pages.</h3>
+<p>Tinc GUI for Android is a <a href="https://github.com/Vilbrekin/tinc">(slightly modified)</a> cross-compiled version of tincd for Arm, associated with a basic GUI for daemon management.</p>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<h2>How does it work?</h2>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<p>As this is a simple GUI around the original tincd daemon, please refer to the <a href="http://www.tinc-vpn.org/documentation/tinc_4.html#Configuration">official documentation</a> for the configuration.</p>
+
+<p>The easiest solution is to build your configuration and store it on your external SD card.
+Because Android devices usually mount it with noexec flag, a new option has been added to tinc's configuration file, in order to specify the script interpreter to use for configuration scripts (instead of having them executable):</p>
+
+<pre><code># Use sh to execute all configuration scripts
+ScriptsInterpreter = /system/bin/sh
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<h2>FAQ</h2>
 
-<h3>Designer Templates</h3>
+<h3>Why does this application need SuperUser rights?</h3>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p>It doesn't really need them by itself (there's an option to disable it).
+However tincd daemon will most probably need super user rights to work properly: access to TUN/TAP device is usually restricted to root.</p>
 
-<h3>Rather Drive Stick?</h3>
+<h3>What are the supported CPU architectures?</h3>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p>ARM only for the time being.</p>
 
-<h3>Authors and Contributors</h3>
+<h3>Is it working?</h3>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>Very well on my SGS2 i9100, under CyanogenMod 9. 
+Waiting for more feedback.</p>
 
-<h3>Support or Contact</h3>
+<h3>Is it free?</h3>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-        </section>
-
-        <footer>
-          Tinc GUI is maintained by <a href="https://github.com/Vilbrekin">Vilbrekin</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
-
-        
-      </div>
+<p>Yes, it's even released under GPLv3. <a href="https://github.com/Vilbrekin/tinc_gui">Source code is available on GitHub</a>.
+However if you like this application and want to support it, you might <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=L8H64G57CZRZA">donate to the author</a>.</p>
+      </section>
     </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Tinc GUI maintained by <a href="https://github.com/Vilbrekin">Vilbrekin</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-2950664-5");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
   </body>
 </html>
