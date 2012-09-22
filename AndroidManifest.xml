@@ -4,7 +4,7 @@
     android:versionCode="1"
     android:versionName="0.9" >
 
-    <uses-sdk android:minSdkVersion="15" />
+    <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="15"/>
 
     <application
         android:icon="@drawable/ic_launcher"
@@ -20,6 +20,7 @@
         </activity>
         <service android:name=".TincdService"></service>
         <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".SettingsActivityOld"></activity>
         <activity android:name=".AboutActivity"></activity>
     </application>
 

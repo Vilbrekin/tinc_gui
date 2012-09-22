@@ -17,30 +17,32 @@
 
 package org.poirsouille.tinc_gui;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
+import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 
-@SuppressLint("NewApi")
-public class SettingsFragment extends PreferenceFragment
+/**
+ * Settings compatibility class for Android versions < Honeycomb.
+ */
+public class SettingsActivityOld extends PreferenceActivity
 {
     SettingsTools _settingsTools;
-
+    
+    @SuppressWarnings("deprecation")
     @Override
-    public void onCreate(Bundle savedInstanceState)
+    protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
-        // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.preferences);
-        PreferenceManager.setDefaultValues(getActivity(), R.xml.preferences, false);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
     }
     
+    @SuppressWarnings("deprecation")
     public void onResume() 
     {
         super.onResume();
-        _settingsTools = new SettingsTools(getActivity(), getPreferenceScreen());
+        _settingsTools = new SettingsTools(this, getPreferenceScreen());
         _settingsTools.onResume();
     }
 
@@ -49,4 +51,5 @@ public class SettingsFragment extends PreferenceFragment
         super.onPause();
         _settingsTools.onPause();
     }
+
 }

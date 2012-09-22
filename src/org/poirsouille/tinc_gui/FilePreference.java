@@ -121,7 +121,7 @@ public class FilePreference extends DialogPreference
                 {
                     _fileList.add(aChild.getName() + "/");
                 }
-                else if (aChild.getName().equals(SettingsFragment.CONF_FILE))
+                else if (aChild.getName().equals(SettingsTools.CONF_FILE))
                 {
                     _fileList.add(aChild.getName());
                 }

@@ -22,11 +22,13 @@ import java.util.List;
 
 import org.poirsouille.tinc_gui.TincdService.LocalBinder;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -74,6 +76,7 @@ public class TincActivity extends Activity implements ICallback
     };
     
     /** Called when the activity is first created. */
+    @TargetApi(11)
     @Override
     public void onCreate(Bundle savedInstanceState) 
     {
@@ -85,17 +88,19 @@ public class TincActivity extends Activity implements ICallback
         _startStopButton = (Button)findViewById(R.id.button1);
         _debugButton = (ToggleButton)findViewById(R.id.debugButton);
         
-        // Ensure to scroll down on each text change
-        _logTextView.addOnLayoutChangeListener(new OnLayoutChangeListener()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
         {
-            public void onLayoutChange(View v, int left, int top, int right,
-                    int bottom, int oldLeft, int oldTop, int oldRight,
-                    int oldBottom)
+            // Ensure to scroll down on each text change
+            _logTextView.addOnLayoutChangeListener(new OnLayoutChangeListener()
             {
-                _scroll.smoothScrollTo(0, _logTextView.getHeight());
-            }
-            
-        });
+                public void onLayoutChange(View v, int left, int top, int right,
+                        int bottom, int oldLeft, int oldTop, int oldRight,
+                        int oldBottom)
+                {
+                    _scroll.smoothScrollTo(0, _logTextView.getHeight());
+                }
+            });
+        }
     }
     
     @Override
@@ -114,7 +119,15 @@ public class TincActivity extends Activity implements ICallback
         {
             case R.id.settings:
             {
-                Intent aIntent = new Intent(this, SettingsActivity.class);
+                Intent aIntent = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                {
+                    aIntent = new Intent(this, SettingsActivity.class);
+                }
+                else
+                {
+                    aIntent = new Intent(this, SettingsActivityOld.class);
+                }
                 startActivity(aIntent);
                 return true;
             }
