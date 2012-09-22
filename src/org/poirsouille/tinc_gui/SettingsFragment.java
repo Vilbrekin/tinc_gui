@@ -34,9 +34,9 @@ import android.util.Log;
 
 public class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener
 {
-	SharedPreferences _sharedPreferences;
-	static final String CONF_FILE = "tinc.conf";
-	
+    SharedPreferences _sharedPreferences;
+    static final String CONF_FILE = "tinc.conf";
+    
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -54,39 +54,39 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     */
     private void updateConfig()
     {
-    	Log.d(Tools.TAG, "Updating configuration");
-    	
-    	// Parent group
-    	PreferenceGroup aGroup = (PreferenceGroup) getPreferenceScreen().findPreference("pref_key_config");
-		PreferenceGroup aHostsGroup = (PreferenceGroup) getPreferenceScreen().findPreference("pref_key_hosts");
-    	// Clean existing ones
-    	aGroup.removeAll();
-		aHostsGroup.removeAll();
-		
-    	// Look for existing configuration files
-    	String aConfigDir = _sharedPreferences.getString("pref_key_config_path", "<None>");
-    	File aConfFile = new File(aConfigDir + "/" + CONF_FILE);
-    	if (aConfFile.exists())
-    	{
-    		// Found main configuration file
-    		addFilePreference(aConfFile, aGroup, R.drawable.ic_menu_manage);
-    		addStandardConfig(new File(aConfigDir), aGroup);
-    		
-    		// Get hosts details from subfolder
-    		File aHostDir = new File(aConfigDir + "/hosts");
-    		if (aHostDir.exists() && aHostDir.isDirectory())
-    		{
-            	addHostsToGroup(aHostDir, aHostsGroup);
-    		}
-    	}
-    	else
-    	{
-        	Preference aPref = new Preference(getActivity());
-        	aPref.setPersistent(false);
-        	aPref.setTitle("No valid configuration found");
-        	aPref.setSummary("Can't find " + CONF_FILE + " in " + aConfigDir);
-        	aGroup.addPreference(aPref);
-    	}
+        Log.d(Tools.TAG, "Updating configuration");
+        
+        // Parent group
+        PreferenceGroup aGroup = (PreferenceGroup) getPreferenceScreen().findPreference("pref_key_config");
+        PreferenceGroup aHostsGroup = (PreferenceGroup) getPreferenceScreen().findPreference("pref_key_hosts");
+        // Clean existing ones
+        aGroup.removeAll();
+        aHostsGroup.removeAll();
+        
+        // Look for existing configuration files
+        String aConfigDir = _sharedPreferences.getString("pref_key_config_path", "<None>");
+        File aConfFile = new File(aConfigDir + "/" + CONF_FILE);
+        if (aConfFile.exists())
+        {
+            // Found main configuration file
+            addFilePreference(aConfFile, aGroup, R.drawable.ic_menu_manage);
+            addStandardConfig(new File(aConfigDir), aGroup);
+            
+            // Get hosts details from subfolder
+            File aHostDir = new File(aConfigDir + "/hosts");
+            if (aHostDir.exists() && aHostDir.isDirectory())
+            {
+                addHostsToGroup(aHostDir, aHostsGroup);
+            }
+        }
+        else
+        {
+            Preference aPref = new Preference(getActivity());
+            aPref.setPersistent(false);
+            aPref.setTitle("No valid configuration found");
+            aPref.setSummary("Can't find " + CONF_FILE + " in " + aConfigDir);
+            aGroup.addPreference(aPref);
+        }
     }
     
    /**
@@ -99,13 +99,13 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
         File[] aChildren = iHostsDir.listFiles();
         for (File aChild : aChildren) 
         {
-        	// Apply similar check to tinc's check_id to filter only valid hosts configuration files
-        	if (aChild.getName().matches("[a-zA-Z0-9_]+"))
-        	{
-        		addFilePreference(aChild, oGroup, R.drawable.ic_menu_manage);
-        		// Look for -up/-down scripts for this host
-        		addUpDown(aChild, oGroup);
-        	}
+            // Apply similar check to tinc's check_id to filter only valid hosts configuration files
+            if (aChild.getName().matches("[a-zA-Z0-9_]+"))
+            {
+                addFilePreference(aChild, oGroup, R.drawable.ic_menu_manage);
+                // Look for -up/-down scripts for this host
+                addUpDown(aChild, oGroup);
+            }
         }
     }
     
@@ -116,11 +116,11 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     */
     private void addStandardConfig(File iRootDir, PreferenceGroup oGroup)
     {
-    	final String[] kFilesPfx = {"tinc", "subnet", "host"};
-    	for (String aPfx : kFilesPfx)
-    	{
-    		addUpDown(new File(iRootDir.getPath() + "/" + aPfx), oGroup);
-    	}
+        final String[] kFilesPfx = {"tinc", "subnet", "host"};
+        for (String aPfx : kFilesPfx)
+        {
+            addUpDown(new File(iRootDir.getPath() + "/" + aPfx), oGroup);
+        }
     }
     
    /**
@@ -130,12 +130,12 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     */
     private void addUpDown(File iHostFile, PreferenceGroup oGroup)
     {
-		File aUpFile = new File (iHostFile.getPath() + "-up");
-		if (aUpFile.exists()) 
-			addFilePreference(aUpFile, oGroup, R.drawable.ic_menu_play_clip);
-		File aDownFile = new File (iHostFile.getPath() + "-down");
-		if (aDownFile.exists()) 
-			addFilePreference(aDownFile, oGroup, R.drawable.ic_menu_stop);
+        File aUpFile = new File (iHostFile.getPath() + "-up");
+        if (aUpFile.exists()) 
+            addFilePreference(aUpFile, oGroup, R.drawable.ic_menu_play_clip);
+        File aDownFile = new File (iHostFile.getPath() + "-down");
+        if (aDownFile.exists()) 
+            addFilePreference(aDownFile, oGroup, R.drawable.ic_menu_stop);
     }
     
    /**
@@ -146,17 +146,17 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     */
     private void addFilePreference(File iFile, PreferenceGroup oGroup, int iIconResId)
     {
-    	Preference aPref = new Preference(getActivity());
-    	aPref.setPersistent(false);
-    	aPref.setTitle(iFile.getName());
-    	aPref.setIcon(iIconResId);
-    	// Use an intent to open with external text editor
-    	Intent aIntent = new Intent();
-    	aIntent.setAction(android.content.Intent.ACTION_VIEW);
-    	aIntent.setDataAndType(Uri.fromFile(iFile), "text/plain");
-    	aPref.setIntent(aIntent);
-    	
-    	oGroup.addPreference(aPref);
+        Preference aPref = new Preference(getActivity());
+        aPref.setPersistent(false);
+        aPref.setTitle(iFile.getName());
+        aPref.setIcon(iIconResId);
+        // Use an intent to open with external text editor
+        Intent aIntent = new Intent();
+        aIntent.setAction(android.content.Intent.ACTION_VIEW);
+        aIntent.setDataAndType(Uri.fromFile(iFile), "text/plain");
+        aPref.setIntent(aIntent);
+        
+        oGroup.addPreference(aPref);
     }
     
    /**
@@ -165,19 +165,19 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     */
     private void updateSummaries(PreferenceGroup iPrefGrp)
     {
-    	for (int i = 0; i < iPrefGrp.getPreferenceCount(); ++ i)
-    	{
-    		Preference aPref = iPrefGrp.getPreference(i);
-    		if (aPref instanceof PreferenceGroup)
-    		{
-    			// Recursive call
-    			updateSummaries((PreferenceGroup) aPref);
-    		}
-    		else if (aPref instanceof DialogPreference)
-    		{
-    			aPref.setSummary(_sharedPreferences.getString(aPref.getKey(), "<None>"));
-    		}
-    	}
+        for (int i = 0; i < iPrefGrp.getPreferenceCount(); ++ i)
+        {
+            Preference aPref = iPrefGrp.getPreference(i);
+            if (aPref instanceof PreferenceGroup)
+            {
+                // Recursive call
+                updateSummaries((PreferenceGroup) aPref);
+            }
+            else if (aPref instanceof DialogPreference)
+            {
+                aPref.setSummary(_sharedPreferences.getString(aPref.getKey(), "<None>"));
+            }
+        }
     }
     
     public void onResume() 
@@ -196,7 +196,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
     
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) 
     {
-    	Log.d(Tools.TAG,"Pref changed: " + key);
+        Log.d(Tools.TAG,"Pref changed: " + key);
         Preference pref = findPreference(key);
         if (!(pref instanceof CheckBoxPreference))
         {
@@ -204,6 +204,6 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
             pref.setSummary(sharedPreferences.getString(key, "<None>"));
         }
         if (key.equals("pref_key_config_path"))
-        	updateConfig();
+            updateConfig();
     }
 }

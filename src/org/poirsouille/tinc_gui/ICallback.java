@@ -19,5 +19,5 @@ package org.poirsouille.tinc_gui;
 
 public interface ICallback 
 {
-	public void call(String iData);
+    public void call(String iData);
 }

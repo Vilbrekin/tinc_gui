@@ -75,19 +75,19 @@ public class Tools
                 // Send output either to callback or to output list
                 if (ioCallBack != null)
                 {
-                	ioCallBack.call(line);
+                    ioCallBack.call(line);
                 }
                 else
                 {
-                	output.add(line);
+                    output.add(line);
                 }
             }
         } 
         catch (IOException e)
-    	{
+        {
             Log.e(TAG, "Can't execute shell: " + shell);
-    		e.printStackTrace();
-    	}
+            e.printStackTrace();
+        }
     
         return output;
     }
@@ -99,15 +99,15 @@ public class Tools
     */
     public static String ToString(List<String> iList)
     {
-    	String aRes = "";
-    	synchronized(iList)
-    	{
-    		for (String aLine : iList)
-    		{
-    			aRes += aLine + "\n";
-    		}
-    	}
-    	return aRes;
+        String aRes = "";
+        synchronized(iList)
+        {
+            for (String aLine : iList)
+            {
+                aRes += aLine + "\n";
+            }
+        }
+        return aRes;
     }
 
 }

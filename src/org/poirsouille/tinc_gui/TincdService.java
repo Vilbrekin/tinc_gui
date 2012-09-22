@@ -44,25 +44,25 @@ import android.util.Log;
 
 public class TincdService extends Service implements ICallback
 {
-	static final String TINCBIN = "tincd";
-	private static final String PIDFILE = "tinc.pid";
-	String _configPath;
-	// Unique Identification Number for the Notification.
-	private int NOTIFICATION = R.string.local_service_started;
-	private boolean _started = false;
-	public boolean _debug = false;
-	private int _debugLvl = 2;
-	private boolean _useSU = true;
-	// Temporary tincd output buffer, used when activity is not in foreground
-	private List<String> _tempOutput = Collections.synchronizedList(new LinkedList<String>());
-	SharedPreferences _sharedPref;
-	public int _maxLogSize = 1000;
-	private OnSharedPreferenceChangeListener _prefChangeListener;
-	
-	public ICallback _callback = null;
+    static final String TINCBIN = "tincd";
+    private static final String PIDFILE = "tinc.pid";
+    String _configPath;
+    // Unique Identification Number for the Notification.
+    private int NOTIFICATION = R.string.local_service_started;
+    private boolean _started = false;
+    public boolean _debug = false;
+    private int _debugLvl = 2;
+    private boolean _useSU = true;
+    // Temporary tincd output buffer, used when activity is not in foreground
+    private List<String> _tempOutput = Collections.synchronizedList(new LinkedList<String>());
+    SharedPreferences _sharedPref;
+    public int _maxLogSize = 1000;
+    private OnSharedPreferenceChangeListener _prefChangeListener;
+    
+    public ICallback _callback = null;
 
-	
-	// Binder given to clients
+    
+    // Binder given to clients
     private final IBinder _binder = new LocalBinder();
     
     /**
@@ -71,8 +71,8 @@ public class TincdService extends Service implements ICallback
      */
     public class LocalBinder extends Binder 
     {
-    	TincdService getService() 
-    	{
+        TincdService getService() 
+        {
             // Return this instance of LocalService so clients can call public methods
             return TincdService.this;
         }
@@ -91,56 +91,56 @@ public class TincdService extends Service implements ICallback
             aShell = "sh";
         return Tools.Run(aShell, new String[] {command}, ioCallBack);
     }
-	
+    
     public void startTinc() 
     {
-    	if (! _started)
-    	{
-			// Start tincd in a dedicated thread
-	        new Thread(new Runnable() 
-	        {
-	            public void run()
-	            {
-	            	installTincd();
-	            	
-	    	    	int aPid;
-	    	    	if ((aPid = getPid()) != 0)
-	    	    	{
-	    	    		// Kill old running daemon if any
-	    	    		TincdService.this.run("kill " + aPid + " || rm " + getFileStreamPath(PIDFILE), null);
-	    	    		try
-						{
-							Thread.sleep(500);
-						} 
-	    	    		catch (InterruptedException e)
-						{
-						}
-	    	    	}
+        if (! _started)
+        {
+            // Start tincd in a dedicated thread
+            new Thread(new Runnable() 
+            {
+                public void run()
+                {
+                    installTincd();
+                    
+                    int aPid;
+                    if ((aPid = getPid()) != 0)
+                    {
+                        // Kill old running daemon if any
+                        TincdService.this.run("kill " + aPid + " || rm " + getFileStreamPath(PIDFILE), null);
+                        try
+                        {
+                            Thread.sleep(500);
+                        } 
+                        catch (InterruptedException e)
+                        {
+                        }
+                    }
 
-	    	    	_started = true;
-	    	    	_debug = false;
-	            	// Use exec to replace shell with executable. umask is used to ensure pidfile will be world readable.
+                    _started = true;
+                    _debug = false;
+                    // Use exec to replace shell with executable. umask is used to ensure pidfile will be world readable.
                     TincdService.this.run("umask 022; exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
-	            	// Process returns only when ended
-	            	_started = false;
-	                Log.d(Tools.TAG, "End of tincd thread");
-	                TincdService.this.stopTincd();
-	            }
-	        }).start();
-    	}
-	    
+                    // Process returns only when ended
+                    _started = false;
+                    Log.d(Tools.TAG, "End of tincd thread");
+                    TincdService.this.stopTincd();
+                }
+            }).start();
+        }
+        
     }
     
     public void stopTincd()
     {
-    	if (_started)
-		{
-    		int aPid = getPid();
-        	if (aPid != 0)
-        		run("kill " + aPid + " || rm " + getFileStreamPath(PIDFILE), null);
-		}
+        if (_started)
+        {
+            int aPid = getPid();
+            if (aPid != 0)
+                run("kill " + aPid + " || rm " + getFileStreamPath(PIDFILE), null);
+        }
         _debug = false;
-    	stopForeground(true);
+        stopForeground(true);
         stopSelf();
         Log.d(Tools.TAG, "killed");
     }
@@ -151,57 +151,57 @@ public class TincdService extends Service implements ICallback
     void installTincd()
     {
         try
-		{
-        	boolean aInstallNeeded = true;
-	    	InputStream aIS = getResources().openRawResource(R.raw.tincd);  
-	    	int aInLen = aIS.available();
-	    	byte[] buffer = new byte[aInLen];  
-	        //read the text file as a stream, into the buffer  
-			aIS.read(buffer);
-	        aIS.close();
-	        File aTincBinFile = getFileStreamPath(TINCBIN);
-	        if(aTincBinFile.exists())
-        	{
-        		InputStream aIS2 = openFileInput(TINCBIN);
-        		// Compare files sizes first
-		    	if (aInLen == aIS2.available())
-		    	{
-		    		byte[] aBuffer2 = new byte[aInLen];
-					aIS2.read(aBuffer2);
-			        aIS2.close();
-			        CRC32 aCkSum1 = new CRC32(), aCkSum2 = new CRC32();
-			        aCkSum1.update(buffer);
-			        aCkSum2.update(aBuffer2);
-		    		if (aCkSum1.getValue() == aCkSum2.getValue())
-		    		{
-		    			// Same file, skip install
-		    			aInstallNeeded = false;
-		    		}
-		    	}
-        		
-        	}
-        	if (aInstallNeeded)
-        	{
-        		Log.i(Tools.TAG, "Installing tincd binary");
-		    	FileOutputStream aOS = openFileOutput(TINCBIN, MODE_PRIVATE);
-        		// Copy file from raw resources
-		    	aOS.write(buffer);
-		        //Close the Input and Output streams  
-		    	aOS.close();  
-		        
-        	}
-        	
-        	// Ensure binary is executable
-        	if (! aTincBinFile.canExecute())
-        	{
+        {
+            boolean aInstallNeeded = true;
+            InputStream aIS = getResources().openRawResource(R.raw.tincd);  
+            int aInLen = aIS.available();
+            byte[] buffer = new byte[aInLen];  
+            //read the text file as a stream, into the buffer  
+            aIS.read(buffer);
+            aIS.close();
+            File aTincBinFile = getFileStreamPath(TINCBIN);
+            if(aTincBinFile.exists())
+            {
+                InputStream aIS2 = openFileInput(TINCBIN);
+                // Compare files sizes first
+                if (aInLen == aIS2.available())
+                {
+                    byte[] aBuffer2 = new byte[aInLen];
+                    aIS2.read(aBuffer2);
+                    aIS2.close();
+                    CRC32 aCkSum1 = new CRC32(), aCkSum2 = new CRC32();
+                    aCkSum1.update(buffer);
+                    aCkSum2.update(aBuffer2);
+                    if (aCkSum1.getValue() == aCkSum2.getValue())
+                    {
+                        // Same file, skip install
+                        aInstallNeeded = false;
+                    }
+                }
+                
+            }
+            if (aInstallNeeded)
+            {
+                Log.i(Tools.TAG, "Installing tincd binary");
+                FileOutputStream aOS = openFileOutput(TINCBIN, MODE_PRIVATE);
+                // Copy file from raw resources
+                aOS.write(buffer);
+                //Close the Input and Output streams  
+                aOS.close();  
+                
+            }
+            
+            // Ensure binary is executable
+            if (! aTincBinFile.canExecute())
+            {
                 // Set it as executable
-        	    aTincBinFile.setExecutable(true, false);
-        	}
-		} 
+                aTincBinFile.setExecutable(true, false);
+            }
+        } 
         catch (IOException e)
-		{
-			e.printStackTrace();
-		}  
+        {
+            e.printStackTrace();
+        }  
     }
     
    /**
@@ -210,32 +210,32 @@ public class TincdService extends Service implements ICallback
     */
     public int getPid()
     {
-    	int aPid = 0;
-    	try 
-    	{
-    		String aStr;
-			InputStream aInstream = openFileInput(PIDFILE);
-			BufferedReader aReader = new BufferedReader(new InputStreamReader(aInstream));
-			if ((aStr = aReader.readLine()) != null)
-			{
-				aPid = Integer.parseInt(aStr);
-			}
-		} 
-    	catch (FileNotFoundException e) 
-    	{
-    		// Not found is expected, do nothing
-		} 
-    	catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-    	Log.d(Tools.TAG, "Returning PID " + aPid);
-    	return aPid;
+        int aPid = 0;
+        try 
+        {
+            String aStr;
+            InputStream aInstream = openFileInput(PIDFILE);
+            BufferedReader aReader = new BufferedReader(new InputStreamReader(aInstream));
+            if ((aStr = aReader.readLine()) != null)
+            {
+                aPid = Integer.parseInt(aStr);
+            }
+        } 
+        catch (FileNotFoundException e) 
+        {
+            // Not found is expected, do nothing
+        } 
+        catch (IOException e) 
+        {
+            e.printStackTrace();
+        }
+        Log.d(Tools.TAG, "Returning PID " + aPid);
+        return aPid;
     }
     
     public boolean isStarted()
     {
-    	return _started;
+        return _started;
     }
     
    /**
@@ -245,13 +245,13 @@ public class TincdService extends Service implements ICallback
     */
     public String signal(String iSigType)
     {
-    	String aRes ="";
-    	int aPid;
-    	if (_started && (aPid = getPid()) != 0)
-    	{
-    		aRes = Tools.ToString(run("kill -" + iSigType +" " + aPid, null));
-    	}
-    	return aRes;
+        String aRes ="";
+        int aPid;
+        if (_started && (aPid = getPid()) != 0)
+        {
+            aRes = Tools.ToString(run("kill -" + iSigType +" " + aPid, null));
+        }
+        return aRes;
     }
     
    /**
@@ -259,36 +259,36 @@ public class TincdService extends Service implements ICallback
     */
     public void toggleDebug()
     {
-    	signal("SIGINT");
-    	_debug = !_debug;
+        signal("SIGINT");
+        _debug = !_debug;
     }
     
     @Override
-	public int onStartCommand(Intent intent, int flags, int startId) 
+    public int onStartCommand(Intent intent, int flags, int startId) 
     {
-	    startTinc();
-	    Log.d(Tools.TAG, "Service started");
-	    showNotification();
-	    // We want this service to continue running until it is explicitly
-	    // stopped, so return sticky.
-	    return START_STICKY;
-	}
+        startTinc();
+        Log.d(Tools.TAG, "Service started");
+        showNotification();
+        // We want this service to continue running until it is explicitly
+        // stopped, so return sticky.
+        return START_STICKY;
+    }
 
     public void onCreate()
     {
-    	_sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-    	// Refresh local preferences when there are some updates - keep listener in a class member to avoid GC 
-    	// (see http://stackoverflow.com/questions/2542938/sharedpreferences-onsharedpreferencechangelistener-not-being-called-consistently)
-    	_prefChangeListener = new OnSharedPreferenceChangeListener()
-    	{
-			public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
-			{
-				refreshPrefs();
-			}
-    	};
-    	_sharedPref.registerOnSharedPreferenceChangeListener(_prefChangeListener);
-    	// Refresh at startup as well
-    	refreshPrefs();
+        _sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        // Refresh local preferences when there are some updates - keep listener in a class member to avoid GC 
+        // (see http://stackoverflow.com/questions/2542938/sharedpreferences-onsharedpreferencechangelistener-not-being-called-consistently)
+        _prefChangeListener = new OnSharedPreferenceChangeListener()
+        {
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+            {
+                refreshPrefs();
+            }
+        };
+        _sharedPref.registerOnSharedPreferenceChangeListener(_prefChangeListener);
+        // Refresh at startup as well
+        refreshPrefs();
     }
     
    /**
@@ -296,40 +296,40 @@ public class TincdService extends Service implements ICallback
     */
     private void refreshPrefs()
     {
-    	Log.d(Tools.TAG, "Refreshing preferences");
-    	_configPath = _sharedPref.getString("pref_key_config_path", _configPath);
-    	_maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
-    	_debugLvl = Integer.parseInt(_sharedPref.getString("pref_key_debug_level", "" + _debugLvl));
-    	_useSU = _sharedPref.getBoolean("pref_key_super_user", _useSU);
+        Log.d(Tools.TAG, "Refreshing preferences");
+        _configPath = _sharedPref.getString("pref_key_config_path", _configPath);
+        _maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
+        _debugLvl = Integer.parseInt(_sharedPref.getString("pref_key_debug_level", "" + _debugLvl));
+        _useSU = _sharedPref.getBoolean("pref_key_super_user", _useSU);
     }
     
     public void onDestroy ()
     {
-    	stopTincd();
-    	Log.d(Tools.TAG, "Service destroyed");
+        stopTincd();
+        Log.d(Tools.TAG, "Service destroyed");
     }
     
-	@Override
-	public IBinder onBind(Intent intent) 
-	{
-		return _binder;
-	}
-	
-	
+    @Override
+    public IBinder onBind(Intent intent) 
+    {
+        return _binder;
+    }
+    
+    
    /**
     * Show a notification while this service is running.
     */
     @SuppressWarnings("deprecation")
     private void showNotification() 
     {
-    	
-    	Notification notification = new Notification(R.drawable.favicon, getText(R.string.local_service_started),
-    	        System.currentTimeMillis());
-    	Intent notificationIntent = new Intent(this, TincActivity.class);
-    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-    	notification.setLatestEventInfo(this, getText(R.string.local_service_label),
-    	        getText(R.string.local_service_started), pendingIntent);
-    	startForeground(NOTIFICATION, notification);
+        
+        Notification notification = new Notification(R.drawable.favicon, getText(R.string.local_service_started),
+                System.currentTimeMillis());
+        Intent notificationIntent = new Intent(this, TincActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        notification.setLatestEventInfo(this, getText(R.string.local_service_label),
+                getText(R.string.local_service_started), pendingIntent);
+        startForeground(NOTIFICATION, notification);
     }
 
    /**
@@ -352,26 +352,26 @@ public class TincdService extends Service implements ICallback
     * Either forwards it to activity's callback (if available, on the foreground), or stores the result in temporary output. 
     */
     public void call(String iData)
-	{
-		Date aDate = new Date();
-		SimpleDateFormat aFormat = new SimpleDateFormat("HH:mm:ss");
-		String aTxt = aFormat.format(aDate) + " " + iData;
-		// Notify activity callback if any
-		if (_callback != null)
-		{
-			_callback.call(aTxt);
-		}
-		else
-		{
-		    // Activity is not available. Store temporary output.
-	        _tempOutput.add(aTxt);
-	        // Limit log size
-	        while (_maxLogSize > 0 && _tempOutput.size() >= _maxLogSize)
-	        {
-	            _tempOutput.remove(0);
-	        }
-		}
-	}
+    {
+        Date aDate = new Date();
+        SimpleDateFormat aFormat = new SimpleDateFormat("HH:mm:ss");
+        String aTxt = aFormat.format(aDate) + " " + iData;
+        // Notify activity callback if any
+        if (_callback != null)
+        {
+            _callback.call(aTxt);
+        }
+        else
+        {
+            // Activity is not available. Store temporary output.
+            _tempOutput.add(aTxt);
+            // Limit log size
+            while (_maxLogSize > 0 && _tempOutput.size() >= _maxLogSize)
+            {
+                _tempOutput.remove(0);
+            }
+        }
+    }
     
    /**
     * Get tincd status and routing table. 
@@ -379,9 +379,9 @@ public class TincdService extends Service implements ICallback
     */
     public String getStatus()
     {
-    	String aStatus = signal("SIGUSR1");
-    	aStatus += signal("SIGUSR2");
-    	aStatus += Tools.ToString(run("ip route", null));
-		return aStatus;
+        String aStatus = signal("SIGUSR1");
+        aStatus += signal("SIGUSR2");
+        aStatus += Tools.ToString(run("ip route", null));
+        return aStatus;
     }
 }

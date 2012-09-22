@@ -48,7 +48,7 @@ public class TincActivity extends Activity implements ICallback
     TextView _logTextView;
     Button _startStopButton;
     ToggleButton _debugButton;
-	
+    
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection _connection = new ServiceConnection() 
     {
@@ -88,13 +88,13 @@ public class TincActivity extends Activity implements ICallback
         // Ensure to scroll down on each text change
         _logTextView.addOnLayoutChangeListener(new OnLayoutChangeListener()
         {
-			public void onLayoutChange(View v, int left, int top, int right,
-					int bottom, int oldLeft, int oldTop, int oldRight,
-					int oldBottom)
-			{
-				_scroll.smoothScrollTo(0, _logTextView.getHeight());
-			}
-        	
+            public void onLayoutChange(View v, int left, int top, int right,
+                    int bottom, int oldLeft, int oldTop, int oldRight,
+                    int oldBottom)
+            {
+                _scroll.smoothScrollTo(0, _logTextView.getHeight());
+            }
+            
         });
     }
     
@@ -114,8 +114,8 @@ public class TincActivity extends Activity implements ICallback
         {
             case R.id.settings:
             {
-            	Intent aIntent = new Intent(this, SettingsActivity.class);
-            	startActivity(aIntent);
+                Intent aIntent = new Intent(this, SettingsActivity.class);
+                startActivity(aIntent);
                 return true;
             }
             case R.id.about:
@@ -176,13 +176,13 @@ public class TincActivity extends Activity implements ICallback
     {
         if (_service == null || ! _service.isStarted())
         {
-        	Intent intent = new Intent(this,TincdService.class); 
-        	startService(intent);
+            Intent intent = new Intent(this,TincdService.class); 
+            startService(intent);
         }
         else
         {
-        	Log.d(Tools.TAG, "Requesting stop");
-        	_service.stopTincd();
+            Log.d(Tools.TAG, "Requesting stop");
+            _service.stopTincd();
         }
     }
     
@@ -198,13 +198,13 @@ public class TincActivity extends Activity implements ICallback
     {
         if (_service != null && _service.isStarted())
         {
-        	_txtView.setText("Started");
-        	_startStopButton.setText(getText(R.string.stop));
+            _txtView.setText("Started");
+            _startStopButton.setText(getText(R.string.stop));
         }
         else
         {
-        	_txtView.setText("Stopped");
-        	_startStopButton.setText(getText(R.string.start));
+            _txtView.setText("Stopped");
+            _startStopButton.setText(getText(R.string.start));
         }
         if (_service != null) 
             _debugButton.setChecked(_service._debug);
