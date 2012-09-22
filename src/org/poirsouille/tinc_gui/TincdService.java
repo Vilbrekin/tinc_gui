@@ -119,8 +119,8 @@ public class TincdService extends Service implements ICallback
 
 	    	    	_started = true;
 	    	    	_debug = false;
-	            	// Use exec to replace shell with executable
-                    TincdService.this.run("exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
+	            	// Use exec to replace shell with executable. umask is used to ensure pidfile will be world readable.
+                    TincdService.this.run("umask 022; exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
 	            	// Process returns only when ended
 	            	_started = false;
 	                Log.d(Tools.TAG, "End of tincd thread");
