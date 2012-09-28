@@ -247,11 +247,13 @@ public class TincActivity extends Activity implements ICallback
         {
             _txtView.setText("Started");
             _startStopButton.setText(getText(R.string.stop));
+            _debugButton.setEnabled(true);
         }
         else
         {
             _txtView.setText("Stopped");
             _startStopButton.setText(getText(R.string.start));
+            _debugButton.setEnabled(false);
         }
         if (_service != null) 
             _debugButton.setChecked(_service._debug);
@@ -329,6 +331,7 @@ public class TincActivity extends Activity implements ICallback
         updateLog(null);
     }
 
+    /// ICallback interface implementation
     public void call(final String iData)
     {
         _logTextView.post(new Runnable()
