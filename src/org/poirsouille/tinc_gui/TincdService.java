@@ -52,7 +52,7 @@ public class TincdService extends Service implements ICallback
     private boolean _started = false;
     public boolean _debug = false;
     private int _debugLvl = 2;
-    private boolean _useSU = true;
+    public boolean _useSU = true;
     // Temporary tincd output buffer, used when activity is not in foreground
     private List<String> _tempOutput = Collections.synchronizedList(new LinkedList<String>());
     SharedPreferences _sharedPref;

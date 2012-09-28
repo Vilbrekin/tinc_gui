@@ -24,8 +24,10 @@ import org.poirsouille.tinc_gui.TincdService.LocalBinder;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Build;
@@ -185,12 +187,44 @@ public class TincActivity extends Activity implements ICallback
         }
     }
     
+    private boolean checkRoot()
+    {
+        if (_service != null && _service._useSU)
+        {
+            // Ensure su is working correctly, as some implementations do simply nothing, without error...
+            String aOut = Tools.ToString(Tools.Run("su", "id"));
+            return (aOut.length() >= 5 && aOut.substring(0, 5).equals("uid=0"));
+        }
+        return true;
+    }
+    
     public void click(View view) throws IOException 
     {
         if (_service == null || ! _service.isStarted())
         {
-            Intent intent = new Intent(this,TincdService.class); 
-            startService(intent);
+            // Ensure device is rooted if SU is activated
+            if (! checkRoot())
+            {
+                // Display error dialog
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(R.string.no_su_error)
+                       .setCancelable(false)
+                       .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() 
+                       {
+                           public void onClick(DialogInterface dialog, int id) 
+                           {
+                                dialog.dismiss();
+                           }
+                       });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+            else
+            {
+                // Start tincd service
+                Intent intent = new Intent(this,TincdService.class); 
+                startService(intent);
+            }
         }
         else
         {

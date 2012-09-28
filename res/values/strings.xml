@@ -21,6 +21,7 @@
     <string name="pref_title_current_config">Current configuration</string>
     <string name="pref_title_hosts">Hosts</string>
     <string name="current_path">Current path: </string>
+    <string name="no_su_error">Your terminal is not rooted properly. Please correct this or try disabling su usage from preferences.</string>
     <string name="about_text"> <![CDATA[
  <p>
 Tinc GUI for android.<br/>
