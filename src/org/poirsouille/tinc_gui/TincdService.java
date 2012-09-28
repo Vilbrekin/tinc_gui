@@ -137,12 +137,16 @@ public class TincdService extends Service implements ICallback
         {
             int aPid = getPid();
             if (aPid != 0)
+            {
                 run("kill " + aPid + " || rm " + getFileStreamPath(PIDFILE), null);
+                Log.d(Tools.TAG, "killed");
+            }
         }
         _debug = false;
         stopForeground(true);
-        stopSelf();
-        Log.d(Tools.TAG, "killed");
+        // Do not call stopSelf(), in order to keep any unflushed logs until GUI activity is back
+        // Ensure GUI is updated
+        call("tincd terminated.");
     }
  
    /**
