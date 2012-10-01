@@ -145,6 +145,7 @@ public class TincdService extends Service implements ICallback
         _debug = false;
         stopForeground(true);
         // Do not call stopSelf(), in order to keep any unflushed logs until GUI activity is back
+        checkAndStopSelf();
         // Ensure GUI is updated
         call("tincd terminated.");
     }
@@ -270,9 +271,13 @@ public class TincdService extends Service implements ICallback
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) 
     {
-        startTinc();
-        Log.d(Tools.TAG, "Service started");
-        showNotification();
+        // Because of the START_STICKY, the service might get restarted by the system after a kill, but with a null intent
+        if (intent != null)
+        {
+            startTinc();
+            Log.d(Tools.TAG, "Service started");
+            showNotification();
+        }
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
@@ -347,6 +352,8 @@ public class TincdService extends Service implements ICallback
         {
             aRes = new LinkedList<String>(_tempOutput);
             _tempOutput.clear();
+            // Stop self if needed
+            checkAndStopSelf();
         }
         return aRes;
     }
@@ -387,5 +394,17 @@ public class TincdService extends Service implements ICallback
         aStatus += signal("SIGUSR2");
         aStatus += Tools.ToString(run("ip route", null));
         return aStatus;
+    }
+    
+   /**
+    * Check if there's anything left in context or tincd is running.
+    * Otherwise stop the service.
+    */
+    void checkAndStopSelf()
+    {
+        if (!_started && _tempOutput.isEmpty())
+        {
+            stopSelf();
+        }
     }
 }

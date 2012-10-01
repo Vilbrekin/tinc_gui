@@ -316,7 +316,7 @@ public class TincActivity extends Activity implements ICallback
     @Override
     protected void onSaveInstanceState(Bundle outState)
     {
-        Log.d(Tools.TAG, "onSaveInstanceState");
+        //Log.d(Tools.TAG, "onSaveInstanceState");
         super.onSaveInstanceState(outState);
         outState.putCharSequence("_logTextView", _logTextView.getText());
     }
@@ -324,7 +324,7 @@ public class TincActivity extends Activity implements ICallback
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState)
     {
-        Log.d(Tools.TAG, "onRestoreInstanceState");
+        //Log.d(Tools.TAG, "onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
         _logTextView.setText(savedInstanceState.getCharSequence("_logTextView"));
         // Append any text saved in service's internal buffer
