@@ -55,19 +55,84 @@ ScriptsInterpreter = /system/bin/sh
 <p>It doesn't really need them by itself (there's an option to disable it).
 However tincd daemon will most probably need super user rights to work properly: access to TUN/TAP device is usually restricted to root.</p>
 
+<h3>Do you have any configuration example?</h3>
+
+<p>
+    The configuration follows <a href="http://www.tinc-vpn.org/documentation/tinc_4.html#Configuration-files">standard tinc's one</a>. For an easier start, here's mine.
+    <br/>
+    It uses switch mode on CM 10.1 (thus TUN device is /dev/tun), and routes all the traffic through the VPN (using host-up file).
+</p>
+
+<p>tinc.conf</p>
+<pre><code>Name = android
+AddressFamily = ipv4
+ConnectTo = another_peer
+Device = /dev/tun
+DeviceType = tap
+Mode = switch
+KeyExpire = 3600
+Interface = tap0
+PrivateKeyFile = /sdcard/tinc/vpn/rsa_key.priv
+ScriptsInterpreter = /system/bin/sh</code></pre>
+
+<p>tinc-up</p>
+<pre><code>#!/system/bin/sh
+ifconfig $INTERFACE 10.0.0.130
+echo 1 &gt; /proc/sys/net/ipv4/conf/$INTERFACE/rp_filter</code></pre>
+
+<p>hosts/another_peer</p>
+<pre><code>Address = another_peer.org
+Subnet = 10.0.0.0/24
+
+-----BEGIN RSA PUBLIC KEY-----
+...
+-----END RSA PUBLIC KEY-----
+</code></pre>
+
+<p>hosts/another_peer-up</p>
+<pre><code>#!/system/bin/sh 
+echo $REMOTEADDRESS
+echo $INTERFACE 
+VPN_GATEWAY=10.0.0.254
+ORIGINAL_GATEWAY=`ip route show | grep ^default | cut -d ' ' -f 2-5`
+
+ip route add $REMOTEADDRESS $ORIGINAL_GATEWAY 
+ip route add $VPN_GATEWAY dev $INTERFACE 
+ip route add 0.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE 
+ip route add 128.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE</code></pre>
+
+<p>hosts/another_peer-down</p>
+<pre><code>#!/system/bin/sh
+VPN_GATEWAY=10.0.0.254
+ORIGINAL_GATEWAY=`ip route show | grep ^default | cut -d ' ' -f 2-5`
+
+ip route del $REMOTEADDRESS $ORIGINAL_GATEWAY 
+ip route del $VPN_GATEWAY dev $INTERFACE 
+ip route del 0.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE 
+ip route del 128.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE</code></pre>
+
+<h3>I'm getting "/dev/net/tun not found" error when starting tinc</h3>
+
+<p>Depending on your ROM, the path to TUN/TAP device might be different. Use the Device directive in tinc.conf to specify the correct one (eg. "Device = /dev/tun for CM ROMs).</p>
+
+<h3>I'm getting "Reading RSA private key file `xxx' failed" error when starting tinc</h3>
+
+<p>This happens when the private key can't be read for some reason. Regenerate it and copy it to the device properly.</p>
+
 <h3>What are the supported CPU architectures?</h3>
 
 <p>ARM only for the time being.</p>
 
 <h3>Is it working?</h3>
 
-<p>Very well on my SGS2 i9100, under CyanogenMod 9. 
+<p>Used to work very well on my SGS2 i9100, under CyanogenMod 9. Now running on Nexus 4 with CM 10.1 without a glitch.
 Waiting for more feedback.</p>
 
 <h3>Is it free?</h3>
 
 <p>Yes, it's even released under GPLv3. <a href="https://github.com/Vilbrekin/tinc_gui">Source code is available on GitHub</a>.
-However if you like this application and want to support it, you might <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=L8H64G57CZRZA">donate to the author</a>.</p>
+However if you like this application and want to support it, you might <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=L8H64G57CZRZA">donate to the author</a>. </p>
+<p>I also gladly accept bitcoins (1GnaV352mdeo5wSMtB2mCcoe2MB4WEqjnJ) and litecoins (LfQx5F9zhvjvjRE5H87BsBqWbRr2BrY3W8).</p>
         </section>
 
         <footer>
