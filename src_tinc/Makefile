@@ -41,6 +41,7 @@ openssl-download:
 	@if [ -e "$(PWD)/tmp/$(OPENSSL_FILE)" ] ; then \
 		echo "OPENSSL: downloaded files seem to be ok" ; \
 	else \
+		echo "OPENSSL: downloading source files" ; \
 		wget $(PKG_OPENSSL_SRC) -P $(PWD)/tmp/ ; \
 	fi;
 	
@@ -69,6 +70,7 @@ sdk-download:
 	@if [ -e "$(PWD)/tmp/$(ANDROIDNDK_FILE)" ] ; then \
 		echo "Android NDK: downloaded files seem to be ok" ; \
 	else \
+		echo "Android NDK: downloading Android NDK" ; \
 		wget $(PKG_ANDROIDNDK_SRC) -P $(PWD)/tmp/ ; \
 	fi;
 	
