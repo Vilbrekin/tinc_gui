@@ -15,6 +15,8 @@ ANDROIDNDK_FILE	:= $(shell basename $(PKG_ANDROIDNDK_SRC))
 ANDROIDNDK_DIR	:= $(shell basename $(PKG_ANDROIDNDK_SRC) -linux-x86.tar.bz2)
 SHELL		 = bash
 
+PKG_CHECKSUM     = openssl sha1 '$(PWD)/tmp/$(1)' 2>/dev/null | sed -n 's,^.*\([0-9a-f]\{40\}\)$$,\1,p'
+
 # clean logfile
 $(shell rm -f $(PWD)/log/build.log)
 
@@ -37,8 +39,8 @@ openssl-build:
 	
 	@echo "OPENSSL: compiling"
 	@cd tmp/$(OPENSSL_DIR) && \
-	./Configure dist > $(PWD)/log/build.log && \
-	make CC=$(PWD)/toolchain/bin/arm-linux-androideabi-gcc AR="$(PWD)/toolchain/bin/arm-linux-androideabi-ar r" RANLIB=$(PWD)/toolchain/bin/arm-linux-androideabi-ranlib > $(PWD)/log/build.log
+	./Configure dist >> $(PWD)/log/build.log && \
+	make CC=$(PWD)/toolchain/bin/arm-linux-androideabi-gcc AR="$(PWD)/toolchain/bin/arm-linux-androideabi-ar r" RANLIB=$(PWD)/toolchain/bin/arm-linux-androideabi-ranlib &>> $(PWD)/log/build.log
 
 openssl-download:
 	@if [ -e "$(PWD)/tmp/$(OPENSSL_FILE)" ] ; then \
@@ -48,7 +50,7 @@ openssl-download:
 		wget $(PKG_OPENSSL_SRC) -P $(PWD)/tmp/ ; \
 	fi;
 	
-	@if [ $(PKG_OPENSSL_CHECKSUM) == "$(shell openssl sha1 '$(PWD)/tmp/$(OPENSSL_FILE)' 2>/dev/null | sed -n 's,^.*\([0-9a-f]\{40\}\)$$,\1,p')" ] ; then \
+	@if [ $(PKG_OPENSSL_CHECKSUM) == "`$(call PKG_CHECKSUM,$(OPENSSL_FILE))`" ] ; then \
 		echo "OPENSSL: checksum ok" ; \
 	else \
 		echo "OPENSSL: wrong checksum - aborting ... "; \
@@ -67,7 +69,7 @@ sdk-build:
 	@tar xfj $(PWD)/tmp/$(ANDROIDNDK_FILE) -C $(PWD)/tmp/
 	
 	@echo "Android NDK: installing toolchain to $(PWD)/toolchain"
-	@$(PWD)/tmp/$(ANDROIDNDK_DIR)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain  > $(PWD)/log/build.log
+	@$(PWD)/tmp/$(ANDROIDNDK_DIR)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain >> $(PWD)/log/build.log
 
 sdk-download:
 	@if [ -e "$(PWD)/tmp/$(ANDROIDNDK_FILE)" ] ; then \
@@ -77,7 +79,7 @@ sdk-download:
 		wget $(PKG_ANDROIDNDK_SRC) -P $(PWD)/tmp/ ; \
 	fi;
 	
-	@if [ $(PKG_ANDROIDNDK_CHECKSUM) == $(shell openssl sha1 '$(PWD)/tmp/$(ANDROIDNDK_FILE)' 2>/dev/null | sed -n 's,^.*\([0-9a-f]\{40\}\)$$,\1,p') ] ; then \
+	@if [ $(PKG_ANDROIDNDK_CHECKSUM) == "`$(call PKG_CHECKSUM,$(ANDROIDNDK_FILE))`" ] ; then \
 		echo "Android NDK: checksum ok" ; \
 	else \
 		echo "Android NDK: wrong checksum - aborting ... "; \
@@ -87,7 +89,7 @@ sdk-download:
 tinc: tinc-download tinc-build
 
 tinc-build:
-	@cd tinc && autoreconf -fsi &> $(PWD)/log/build.log
+	@cd tinc && autoreconf -fsi &>> $(PWD)/log/build.log
 	
 	@echo "TINC: building tinc ... this may take some time"
 	@cd tinc && \
@@ -95,8 +97,8 @@ tinc-build:
 	--host=arm-linux \
 	--disable-lzo \
 	--with-openssl-lib=$(PWD)/tmp/$(OPENSSL_DIR) \
-	--with-openssl-include=$(PWD)/tmp/$(OPENSSL_DIR)/include/ &> $(PWD)/log/build.log && \
-	make > $(PWD)/log/build.log
+	--with-openssl-include=$(PWD)/tmp/$(OPENSSL_DIR)/include/ &>> $(PWD)/log/build.log && \
+	make >> $(PWD)/log/build.log
 
 	@if [ -f $(PWD)/tinc/src/tincd ] ; then \
 		echo "TINC: tincd can be found in tinc/src/tincd"; \
@@ -107,14 +109,14 @@ tinc-build:
 tinc-download:
 	@echo "TINC: downloading tinc from git repo"
 	@if [ -d $(PWD)/tinc ] ; then \
-		cd tinc && git pull > $(PWD)/log/build.log ; \
+		cd tinc && git pull >> $(PWD)/log/build.log ; \
 	else \
-		git clone $(PKG_TINC_SRC) > $(PWD)/log/build.log ; \
+		git clone $(PKG_TINC_SRC) >> $(PWD)/log/build.log ; \
 	fi;
 
 install:
 	@if [ -f $(PWD)/tinc/src/tincd ] ; then \
-		cp $(PWD)/tinc/src/tincd $(PWD)/../raw/tincd ; \
+		cp $(PWD)/tinc/src/tincd $(PWD)/../res/raw/tincd ; \
 	else \
 		echo "tincd binary not found - please run 'make' before 'make install'" ;\
 	fi;
@@ -128,7 +130,10 @@ prerequisite:
 		mkdir -p $(PWD)/tmp/ ; \
 	fi
 
-	@if [ ! -d "$(PWD)/tmp/log/" ] ; then \
-		mkdir -p $(PWD)/tmp/log/ ; \
+	@if [ ! -d "$(PWD)/log/" ] ; then \
+		mkdir -p $(PWD)/log/ ; \
 	fi
-
+	
+	@if [ ! -d "$(PWD)/log/build.log" ] ; then \
+		touch $(PWD)/log/build.log ; \
+	fi
