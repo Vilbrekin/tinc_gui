@@ -6,7 +6,7 @@ PKG_ANDROIDNDK_SRC	= "http://dl.google.com/android/ndk/android-ndk-r9d-linux-x86
 PKG_ANDROIDNDK_CHECKSUM	= "10feefd8c1ba950a177ce7a165a12d3b89d9822f"
 PKG_OPENSSL_SRC		= "http://www.openssl.org/source/openssl-1.0.0l.tar.gz"
 PKG_OPENSSL_CHECKSUM	= "f7aeaa76a043ab9c1cd5899d09c696d98278e2d7"
-PKG_TINC_SRC		= "git://tinc-vpn.org/tinc"
+PKG_TINC_SRC		= "http://tinc-vpn.org/git/tinc"
 
 PWD 		:= $(shell pwd)
 OPENSSL_FILE 	:= $(shell basename $(PKG_OPENSSL_SRC))
