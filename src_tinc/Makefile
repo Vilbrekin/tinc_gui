@@ -8,6 +8,8 @@ PKG_OPENSSL_SRC		= "http://www.openssl.org/source/openssl-1.0.0l.tar.gz"
 PKG_OPENSSL_CHECKSUM	= "f7aeaa76a043ab9c1cd5899d09c696d98278e2d7"
 PKG_TINC_SRC		= "http://tinc-vpn.org/git/tinc"
 
+REQUIREMENTS := autoconf automake bash openssl tar wget
+
 PWD 		:= $(shell pwd)
 OPENSSL_FILE 	:= $(shell basename $(PKG_OPENSSL_SRC))
 OPENSSL_DIR 	:= $(shell basename $(PKG_OPENSSL_SRC) .tar.gz)
@@ -16,6 +18,7 @@ ANDROIDNDK_DIR	:= $(shell basename $(PKG_ANDROIDNDK_SRC) -linux-x86.tar.bz2)
 SHELL		 = bash
 
 PKG_CHECKSUM     = openssl sha1 '$(PWD)/tmp/$(1)' 2>/dev/null | sed -n 's,^.*\([0-9a-f]\{40\}\)$$,\1,p'
+CHECK_REQUIREMENT = if [ ! $(shell which $(1)) ]; then echo required program $(1) not found ... please install  ; exit 1 ; fi;
 
 # clean logfile
 $(shell rm -f $(PWD)/log/build.log)
@@ -122,9 +125,7 @@ install:
 	fi;
 
 prerequisite:
-	# check for wget tar
-	# basic vars
-
+	@$(foreach req,$(REQUIREMENTS),$(call CHECK_REQUIREMENT,$(req)))
 
 	@if [ ! -d "$(PWD)/tmp/" ] ; then \
 		mkdir -p $(PWD)/tmp/ ; \
