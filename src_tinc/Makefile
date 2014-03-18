@@ -110,6 +110,11 @@ tinc-download:
 	
 
 install:
+	@if [ -f $(PWD)/tinc/src/tincd ] ; then \
+		cp $(PWD)/tinc/src/tincd $(PWD)/../raw/tincd ; \
+	else \
+		echo "tincd binary not found - please run 'make' before 'make install'" ;\
+	fi;
 
 prerequisite:
 	# check for wget tar
