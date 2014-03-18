@@ -19,8 +19,9 @@ SHELL		 = bash
 all: prerequisite sdk openssl tinc
 
 clean:
-	@if [ -d $(PWD)/toolchain] ; then rm -r $(PWD)/toolchain ; fi;
-	@if [ -d $(PWD)/tinc]      ; then rm -r $(PWD)/tinc      ; fi;
+	@if [ -d $(PWD)/toolchain ] ; then rm -r $(PWD)/toolchain ; fi;
+	@if [ -d $(PWD)/tinc ]      ; then rm -r $(PWD)/tinc      ; fi;
+	@if [ -d $(PWD)/tmp ]       ; then rm -r $(PWD)/tmp       ; fi;
 
 download: openssl-download sdk-download tinc-download
 
