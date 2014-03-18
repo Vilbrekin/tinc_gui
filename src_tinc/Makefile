@@ -15,10 +15,13 @@ ANDROIDNDK_FILE	:= $(shell basename $(PKG_ANDROIDNDK_SRC))
 ANDROIDNDK_DIR	:= $(shell basename $(PKG_ANDROIDNDK_SRC) -linux-x86.tar.bz2)
 SHELL		 = bash
 
+# clean logfile
+$(shell rm -f $(PWD)/log/build.log)
 
 all: prerequisite sdk openssl tinc
 
 clean:
+	@if [ -d $(PWD)/log ]       ; then rm -r $(PWD)/log       ; fi;
 	@if [ -d $(PWD)/toolchain ] ; then rm -r $(PWD)/toolchain ; fi;
 	@if [ -d $(PWD)/tinc ]      ; then rm -r $(PWD)/tinc      ; fi;
 	@if [ -d $(PWD)/tmp ]       ; then rm -r $(PWD)/tmp       ; fi;
@@ -34,8 +37,8 @@ openssl-build:
 	
 	@echo "OPENSSL: compiling"
 	@cd tmp/$(OPENSSL_DIR) && \
-	./Configure dist > /dev/null && \
-	make CC=$(PWD)/toolchain/bin/arm-linux-androideabi-gcc AR="$(PWD)/toolchain/bin/arm-linux-androideabi-ar r" RANLIB=$(PWD)/toolchain/bin/arm-linux-androideabi-ranlib > /dev/null
+	./Configure dist > $(PWD)/log/build.log && \
+	make CC=$(PWD)/toolchain/bin/arm-linux-androideabi-gcc AR="$(PWD)/toolchain/bin/arm-linux-androideabi-ar r" RANLIB=$(PWD)/toolchain/bin/arm-linux-androideabi-ranlib > $(PWD)/log/build.log
 
 openssl-download:
 	@if [ -e "$(PWD)/tmp/$(OPENSSL_FILE)" ] ; then \
@@ -64,7 +67,7 @@ sdk-build:
 	@tar xfj $(PWD)/tmp/$(ANDROIDNDK_FILE) -C $(PWD)/tmp/
 	
 	@echo "Android NDK: installing toolchain to $(PWD)/toolchain"
-	@$(PWD)/tmp/$(ANDROIDNDK_DIR)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain  > /dev/null
+	@$(PWD)/tmp/$(ANDROIDNDK_DIR)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain  > $(PWD)/log/build.log
 
 sdk-download:
 	@if [ -e "$(PWD)/tmp/$(ANDROIDNDK_FILE)" ] ; then \
@@ -84,16 +87,7 @@ sdk-download:
 tinc: tinc-download tinc-build
 
 tinc-build:
-	cd tinc && autoreconf -fsi
-
-tinc-download:
-	@echo "TINC: downloading tinc from git repo"
-	@if [ -d $(PWD)/tinc ] ; then \
-		cd tinc && git pull > /dev/null ; \
-	else \
-		git clone $(PKG_TINC_SRC) > /dev/null ; \
-	fi;
-	
+	@cd tinc && autoreconf -fsi &> $(PWD)/log/build.log
 	
 	@echo "TINC: building tinc ... this may take some time"
 	@cd tinc && \
@@ -101,15 +95,22 @@ tinc-download:
 	--host=arm-linux \
 	--disable-lzo \
 	--with-openssl-lib=$(PWD)/tmp/$(OPENSSL_DIR) \
-	--with-openssl-include=$(PWD)/tmp/$(OPENSSL_DIR)/include/ > /dev/null && \
-	make > /dev/null
+	--with-openssl-include=$(PWD)/tmp/$(OPENSSL_DIR)/include/ &> $(PWD)/log/build.log && \
+	make > $(PWD)/log/build.log
 
 	@if [ -f $(PWD)/tinc/src/tincd ] ; then \
 		echo "TINC: tincd can be found in tinc/src/tincd"; \
 	else \
-		echo "TINC: tincd build failed" ;\
+		echo "TINC: tincd build failed - log file is in ./log/build.log" ;\
 	fi;
 	
+tinc-download:
+	@echo "TINC: downloading tinc from git repo"
+	@if [ -d $(PWD)/tinc ] ; then \
+		cd tinc && git pull > $(PWD)/log/build.log ; \
+	else \
+		git clone $(PKG_TINC_SRC) > $(PWD)/log/build.log ; \
+	fi;
 
 install:
 	@if [ -f $(PWD)/tinc/src/tincd ] ; then \
@@ -126,3 +127,8 @@ prerequisite:
 	@if [ ! -d "$(PWD)/tmp/" ] ; then \
 		mkdir -p $(PWD)/tmp/ ; \
 	fi
+
+	@if [ ! -d "$(PWD)/tmp/log/" ] ; then \
+		mkdir -p $(PWD)/tmp/log/ ; \
+	fi
+
