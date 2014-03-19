@@ -68,25 +68,38 @@ sdk-build:
 		rm -r $(PWD)/toolchain ; \
 	fi;
 	
-	@echo "Android NDK: extracting ... this may take some time"
-	@tar xfj $(PWD)/tmp/$(ANDROIDNDK_FILE) -C $(PWD)/tmp/
-	
-	@echo "Android NDK: installing toolchain to $(PWD)/toolchain"
-	@$(PWD)/tmp/$(ANDROIDNDK_DIR)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain >> $(PWD)/log/build.log
+	@if [ -z "$(ANDROID_NDK)" ] ; then \
+		echo "Android NDK: extracting ... this may take some time" ; \
+		tar xfj $(PWD)/tmp/$(ANDROIDNDK_FILE) -C $(PWD)/tmp/ ; \
+		echo "Android NDK: installing toolchain to $(PWD)/toolchain" ; \
+		$(PWD)/tmp/$(ANDROIDNDK_DIR)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain >> $(PWD)/log/build.log ; \
+	else \
+		echo "Android NDK: using exising under $(ANDROID_NDK)" ; \
+		$(ANDROID_NDK)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain >> $(PWD)/log/build.log ; \
+	fi;
 
 sdk-download:
-	@if [ -e "$(PWD)/tmp/$(ANDROIDNDK_FILE)" ] ; then \
-		echo "Android NDK: downloaded files seem to be ok" ; \
+	@if [ -z "$(ANDROID_NDK)" ] ; then \
+		if [ -e "$(PWD)/tmp/$(ANDROIDNDK_FILE)" ] ; then \
+			echo "Android NDK: downloaded files seem to be ok" ; \
+		else \
+			echo "Android NDK: downloading Android NDK" ; \
+			wget $(PKG_ANDROIDNDK_SRC) -P $(PWD)/tmp/ ; \
+		fi; \
+		\
+		if [ $(PKG_ANDROIDNDK_CHECKSUM) == "`$(call PKG_CHECKSUM,$(ANDROIDNDK_FILE))`" ] ; then \
+			echo "Android NDK: checksum ok" ; \
+		else \
+			echo "Android NDK: wrong checksum - aborting ... "; \
+			exit 1; \
+		fi; \
 	else \
-		echo "Android NDK: downloading Android NDK" ; \
-		wget $(PKG_ANDROIDNDK_SRC) -P $(PWD)/tmp/ ; \
-	fi;
-	
-	@if [ $(PKG_ANDROIDNDK_CHECKSUM) == "`$(call PKG_CHECKSUM,$(ANDROIDNDK_FILE))`" ] ; then \
-		echo "Android NDK: checksum ok" ; \
-	else \
-		echo "Android NDK: wrong checksum - aborting ... "; \
-		exit 1; \
+		if [ -d $(ANDROID_NDK) ] ; then \
+			echo "Android NDK: using exising under $(ANDROID_NDK)" ; \
+		else \
+			echo "Android NDK: not a valid dir $(ANDROID_NDK)" ; \
+			exit 1 ; \
+		fi; \
 	fi;
 
 tinc: tinc-download tinc-build
