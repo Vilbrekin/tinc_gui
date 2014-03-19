@@ -102,7 +102,7 @@ sdk-download:
 		fi; \
 	fi;
 
-tinc: tinc-download tinc-build
+tinc: tinc-download tinc-build tinc-version
 
 tinc-build:
 	@cd tinc && autoreconf -fsi &>> $(PWD)/log/build.log
@@ -129,6 +129,10 @@ tinc-download:
 	else \
 		git clone $(PKG_TINC_SRC) >> $(PWD)/log/build.log ; \
 	fi;
+
+tinc-version:
+	$(eval TINCVER := $(shell grep "^VERSION" $(PWD)/tinc/Makefile ))
+	@echo TINC: $(TINCVER)
 
 install:
 	@if [ -f $(PWD)/tinc/src/tincd ] ; then \
