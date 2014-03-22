@@ -6,7 +6,6 @@ PKG_ANDROIDNDK_SRC	    = "http://dl.google.com/android/ndk/android-ndk-r9d-linux
 PKG_ANDROIDNDK_CHECKSUM	= "10feefd8c1ba950a177ce7a165a12d3b89d9822f"
 PKG_OPENSSL_SRC		    = "http://www.openssl.org/source/openssl-1.0.1f.tar.gz"
 PKG_OPENSSL_CHECKSUM	= "9ef09e97dfc9f14ac2c042f3b7e301098794fc0f"
-PKG_TINC_SRC		    = "http://tinc-vpn.org/git/tinc"
 
 REQUIREMENTS := autoconf automake bash openssl tar wget
 
@@ -40,7 +39,7 @@ clean:
 
 #Delete everything except tarballs
 mrproper: clean
-	@rm -rf $(LOG_FILE) $(TOOLCHAIN_DIR) $(TINC_DIR) $(OPENSSL_DIR) $(ANDROIDNDK_DIR)
+	@rm -rf $(LOG_FILE) $(TOOLCHAIN_DIR) $(OPENSSL_DIR) $(ANDROIDNDK_DIR)
 
 
 # Openssl compiled library (Force -j1 because of openssl limitation)
@@ -113,10 +112,6 @@ $(TINC_DIR)/Makefile: $(TOOLCHAIN_DIR) $(OPENSSL_LIB) | $(TINC_DIR)
 	--disable-lzo \
 	--with-openssl-lib=$(OPENSSL_DIR) \
 	--with-openssl-include=$(OPENSSL_DIR)/include/ --disable-hardening &>> $(LOG_FILE) 
-	
-$(TINC_DIR):
-	@echo "TINC: downloading tinc from git repo"
-	git clone $(PKG_TINC_SRC) >> $(LOG_FILE)
 
 tinc-version: tincd-binary
 	$(eval TINCVER := $(shell grep "^VERSION" $(TINC_DIR)/Makefile ))
