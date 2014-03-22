@@ -4,21 +4,18 @@
 # Pakages
 PKG_ANDROIDNDK_SRC	    = "http://dl.google.com/android/ndk/android-ndk-r9d-linux-x86.tar.bz2"
 PKG_ANDROIDNDK_CHECKSUM	= "10feefd8c1ba950a177ce7a165a12d3b89d9822f"
-PKG_OPENSSL_SRC		    = "http://www.openssl.org/source/openssl-1.0.1f.tar.gz"
-PKG_OPENSSL_CHECKSUM	= "9ef09e97dfc9f14ac2c042f3b7e301098794fc0f"
 
 REQUIREMENTS := autoconf automake bash openssl tar wget
 
 PWD 		:= $(shell pwd)
 BUILD_DIR   := $(PWD)/tmp
-OPENSSL_FILE 	:= $(BUILD_DIR)/$(shell basename $(PKG_OPENSSL_SRC))
-OPENSSL_DIR 	:= $(BUILD_DIR)/$(shell basename $(PKG_OPENSSL_SRC) .tar.gz)
 ANDROIDNDK_FILE	:= $(BUILD_DIR)/$(shell basename $(PKG_ANDROIDNDK_SRC))
 ANDROIDNDK_DIR	:= $(BUILD_DIR)/$(shell basename $(PKG_ANDROIDNDK_SRC) -linux-x86.tar.bz2)
 # Re-use env ANDROID_NDK if it exists already
 ANDROID_NDK   ?= $(ANDROIDNDK_DIR)
 TOOLCHAIN_DIR := $(PWD)/toolchain
 TINC_DIR      := $(PWD)/tinc
+OPENSSL_DIR   := $(PWD)/openssl
 LOG_FILE      := $(PWD)/build.log
 SHELL		 = bash
 
@@ -39,7 +36,7 @@ clean:
 
 #Delete everything except tarballs
 mrproper: clean
-	@rm -rf $(LOG_FILE) $(TOOLCHAIN_DIR) $(OPENSSL_DIR) $(ANDROIDNDK_DIR)
+	@rm -rf $(LOG_FILE) $(TOOLCHAIN_DIR) $(ANDROIDNDK_DIR)
 
 
 # Openssl compiled library (Force -j1 because of openssl limitation)
@@ -48,25 +45,9 @@ $(OPENSSL_LIB): $(OPENSSL_DIR)/Makefile $(TOOLCHAIN_DIR) .FORCE
 	@$(MAKE) -j1 -C $(OPENSSL_DIR) CC=$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-gcc AR="$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-ar r" RANLIB=$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-ranlib &>> $(LOG_FILE)
 
 # Openssl sources directory
-$(OPENSSL_DIR)/Makefile: $(OPENSSL_FILE)
-	@echo "OPENSSL: extracting ... this may take some time"
-	@tar xfz $(OPENSSL_FILE) -C $(BUILD_DIR)
-	@touch $@
+$(OPENSSL_DIR)/Makefile:
 	@echo "OPENSSL: Configuring..."
 	@cd $(OPENSSL_DIR) && ./Configure dist >> $(LOG_FILE) 
-
-	
-# Openssl sources tarball
-$(OPENSSL_FILE):
-	@echo "OPENSSL: downloading source files"
-	wget $(PKG_OPENSSL_SRC) -P $(BUILD_DIR)
-	
-	@if [ $(PKG_OPENSSL_CHECKSUM) == "`$(call PKG_CHECKSUM,$(OPENSSL_FILE))`" ] ; then \
-		echo "OPENSSL: checksum ok" ; \
-	else \
-		echo "OPENSSL: wrong checksum - aborting ... "; \
-		exit 1; \
-	fi;
 
 # Install local ARM toolchain
 $(TOOLCHAIN_DIR): $(ANDROID_NDK)
