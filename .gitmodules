@@ -1,0 +1,4 @@
+[submodule "src_tinc/tinc"]
+	path = src_tinc/tinc
+	url = http://tinc-vpn.org/git/tinc
+	ignore = dirty
