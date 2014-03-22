@@ -71,6 +71,7 @@ tinc-version: tincd-binary
 	@echo TINC: $(TINCVER)
 
 install: tincd-binary
+	mkdir -p $(PWD)/../res/raw
 	cp $(TINC_DIR)/src/tincd $(PWD)/../res/raw/tincd
 
 prerequisite:
