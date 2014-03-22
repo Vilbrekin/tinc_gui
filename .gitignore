@@ -1,2 +1,3 @@
-bin/
-gen/
+/bin/
+/gen/
+/local.properties
