@@ -2,56 +2,65 @@
 
 
 # Pakages
-PKG_ANDROIDNDK_SRC	= "http://dl.google.com/android/ndk/android-ndk-r9d-linux-x86.tar.bz2"
+PKG_ANDROIDNDK_SRC	    = "http://dl.google.com/android/ndk/android-ndk-r9d-linux-x86.tar.bz2"
 PKG_ANDROIDNDK_CHECKSUM	= "10feefd8c1ba950a177ce7a165a12d3b89d9822f"
-PKG_OPENSSL_SRC		= "http://www.openssl.org/source/openssl-1.0.0l.tar.gz"
-PKG_OPENSSL_CHECKSUM	= "f7aeaa76a043ab9c1cd5899d09c696d98278e2d7"
-PKG_TINC_SRC		= "http://tinc-vpn.org/git/tinc"
+PKG_OPENSSL_SRC		    = "http://www.openssl.org/source/openssl-1.0.1f.tar.gz"
+PKG_OPENSSL_CHECKSUM	= "9ef09e97dfc9f14ac2c042f3b7e301098794fc0f"
+PKG_TINC_SRC		    = "http://tinc-vpn.org/git/tinc"
 
 REQUIREMENTS := autoconf automake bash openssl tar wget
 
 PWD 		:= $(shell pwd)
-OPENSSL_FILE 	:= $(shell basename $(PKG_OPENSSL_SRC))
-OPENSSL_DIR 	:= $(shell basename $(PKG_OPENSSL_SRC) .tar.gz)
-ANDROIDNDK_FILE	:= $(shell basename $(PKG_ANDROIDNDK_SRC))
-ANDROIDNDK_DIR	:= $(shell basename $(PKG_ANDROIDNDK_SRC) -linux-x86.tar.bz2)
+BUILD_DIR   := $(PWD)/tmp
+OPENSSL_FILE 	:= $(BUILD_DIR)/$(shell basename $(PKG_OPENSSL_SRC))
+OPENSSL_DIR 	:= $(BUILD_DIR)/$(shell basename $(PKG_OPENSSL_SRC) .tar.gz)
+ANDROIDNDK_FILE	:= $(BUILD_DIR)/$(shell basename $(PKG_ANDROIDNDK_SRC))
+ANDROIDNDK_DIR	:= $(BUILD_DIR)/$(shell basename $(PKG_ANDROIDNDK_SRC) -linux-x86.tar.bz2)
+# Re-use env ANDROID_NDK if it exists already
+ANDROID_NDK   ?= $(ANDROIDNDK_DIR)
+TOOLCHAIN_DIR := $(PWD)/toolchain
+TINC_DIR      := $(PWD)/tinc
+LOG_FILE      := $(PWD)/build.log
 SHELL		 = bash
 
-PKG_CHECKSUM     = openssl sha1 '$(PWD)/tmp/$(1)' 2>/dev/null | sed -n 's,^.*\([0-9a-f]\{40\}\)$$,\1,p'
+PKG_CHECKSUM     = openssl sha1 '$(1)' 2>/dev/null | sed -n 's,^.*\([0-9a-f]\{40\}\)$$,\1,p'
 CHECK_REQUIREMENT = if [ ! $(shell which $(1)) ]; then echo required program $(1) not found ... please install  ; exit 1 ; fi;
 
-# clean logfile
-$(shell rm -f $(PWD)/log/build.log)
 
-all: prerequisite sdk openssl tinc
+OPENSSL_LIB := $(OPENSSL_DIR)/libcrypto.a
+
+all: prerequisite tincd-binary tinc-version
+tincd-binary: $(TINC_DIR)/src/tincd
 
 clean:
-	@if [ -d $(PWD)/log ]       ; then rm -r $(PWD)/log       ; fi;
-	@if [ -d $(PWD)/toolchain ] ; then rm -r $(PWD)/toolchain ; fi;
-	@if [ -d $(PWD)/tinc ]      ; then rm -r $(PWD)/tinc      ; fi;
-	@if [ -d $(PWD)/tmp ]       ; then rm -r $(PWD)/tmp       ; fi;
+	@echo "OPENSSL: Cleaning..."
+	@$(MAKE) clean -C $(OPENSSL_DIR) > /dev/null
+	@echo "TINC: Cleaning..."
+	@$(MAKE) clean -C $(TINC_DIR) > /dev/null
 
-download: openssl-download sdk-download tinc-download
+#Delete everything except tarballs
+mrproper: clean
+	@rm -rf $(LOG_FILE) $(TOOLCHAIN_DIR) $(TINC_DIR) $(OPENSSL_DIR) $(ANDROIDNDK_DIR)
 
 
-openssl: openssl-download openssl-build
-
-openssl-build:
-	@echo "OPENSSL: extracting ... this may take some time"
-	@tar xfz $(PWD)/tmp/$(OPENSSL_FILE) -C $(PWD)/tmp/
-	
+# Openssl compiled library (Force -j1 because of openssl limitation)
+$(OPENSSL_LIB): $(OPENSSL_DIR)/Makefile $(TOOLCHAIN_DIR) .FORCE
 	@echo "OPENSSL: compiling"
-	@cd tmp/$(OPENSSL_DIR) && \
-	./Configure dist >> $(PWD)/log/build.log && \
-	make CC=$(PWD)/toolchain/bin/arm-linux-androideabi-gcc AR="$(PWD)/toolchain/bin/arm-linux-androideabi-ar r" RANLIB=$(PWD)/toolchain/bin/arm-linux-androideabi-ranlib &>> $(PWD)/log/build.log
+	@$(MAKE) -j1 -C $(OPENSSL_DIR) CC=$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-gcc AR="$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-ar r" RANLIB=$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-ranlib &>> $(LOG_FILE)
 
-openssl-download:
-	@if [ -e "$(PWD)/tmp/$(OPENSSL_FILE)" ] ; then \
-		echo "OPENSSL: downloaded files seem to be ok" ; \
-	else \
-		echo "OPENSSL: downloading source files" ; \
-		wget $(PKG_OPENSSL_SRC) -P $(PWD)/tmp/ ; \
-	fi;
+# Openssl sources directory
+$(OPENSSL_DIR)/Makefile: $(OPENSSL_FILE)
+	@echo "OPENSSL: extracting ... this may take some time"
+	@tar xfz $(OPENSSL_FILE) -C $(BUILD_DIR)
+	@touch $@
+	@echo "OPENSSL: Configuring..."
+	@cd $(OPENSSL_DIR) && ./Configure dist >> $(LOG_FILE) 
+
+	
+# Openssl sources tarball
+$(OPENSSL_FILE):
+	@echo "OPENSSL: downloading source files"
+	wget $(PKG_OPENSSL_SRC) -P $(BUILD_DIR)
 	
 	@if [ $(PKG_OPENSSL_CHECKSUM) == "`$(call PKG_CHECKSUM,$(OPENSSL_FILE))`" ] ; then \
 		echo "OPENSSL: checksum ok" ; \
@@ -60,98 +69,68 @@ openssl-download:
 		exit 1; \
 	fi;
 
+# Install local ARM toolchain
+$(TOOLCHAIN_DIR): $(ANDROID_NDK)
+	@$(ANDROID_NDK)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(TOOLCHAIN_DIR) >> $(LOG_FILE) 
 
-sdk: sdk-download sdk-build
+# Local Android NDK
+$(ANDROIDNDK_DIR): $(ANDROIDNDK_FILE)
+	@echo "Android NDK: extracting ... this may take some time"
+	@tar xfj $(ANDROIDNDK_FILE) -C $(BUILD_DIR)
+	@touch $@
 
-sdk-build:
-	@if [ -d $(PWD)/toolchain ] ; then \
-		rm -r $(PWD)/toolchain ; \
-	fi;
-	
-	@if [ -z "$(ANDROID_NDK)" ] ; then \
-		echo "Android NDK: extracting ... this may take some time" ; \
-		tar xfj $(PWD)/tmp/$(ANDROIDNDK_FILE) -C $(PWD)/tmp/ ; \
-		echo "Android NDK: installing toolchain to $(PWD)/toolchain" ; \
-		$(PWD)/tmp/$(ANDROIDNDK_DIR)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain >> $(PWD)/log/build.log ; \
+# NDK tarball
+$(ANDROIDNDK_FILE):
+	wget $(PKG_ANDROIDNDK_SRC) -P $(BUILD_DIR)
+	if [ $(PKG_ANDROIDNDK_CHECKSUM) == "`$(call PKG_CHECKSUM,$(ANDROIDNDK_FILE))`" ] ; then \
+		echo "Android NDK: checksum ok" ; \
 	else \
-		echo "Android NDK: using exising under $(ANDROID_NDK)" ; \
-		$(ANDROID_NDK)/build/tools/make-standalone-toolchain.sh --platform=android-5 --install-dir=$(PWD)/toolchain >> $(PWD)/log/build.log ; \
-	fi;
+		echo "Android NDK: wrong checksum - aborting ... "; \
+		exit 1; \
+	fi
 
-sdk-download:
-	@if [ -z "$(ANDROID_NDK)" ] ; then \
-		if [ -e "$(PWD)/tmp/$(ANDROIDNDK_FILE)" ] ; then \
-			echo "Android NDK: downloaded files seem to be ok" ; \
-		else \
-			echo "Android NDK: downloading Android NDK" ; \
-			wget $(PKG_ANDROIDNDK_SRC) -P $(PWD)/tmp/ ; \
-		fi; \
-		\
-		if [ $(PKG_ANDROIDNDK_CHECKSUM) == "`$(call PKG_CHECKSUM,$(ANDROIDNDK_FILE))`" ] ; then \
-			echo "Android NDK: checksum ok" ; \
-		else \
-			echo "Android NDK: wrong checksum - aborting ... "; \
-			exit 1; \
-		fi; \
-	else \
-		if [ -d $(ANDROID_NDK) ] ; then \
-			echo "Android NDK: using exising under $(ANDROID_NDK)" ; \
-		else \
-			echo "Android NDK: not a valid dir $(ANDROID_NDK)" ; \
-			exit 1 ; \
-		fi; \
-	fi;
 
-tinc: tinc-download tinc-build tinc-version
-
-tinc-build:
-	@cd tinc && autoreconf -fsi &>> $(PWD)/log/build.log
-	
+# tincd binary
+$(TINC_DIR)/src/tincd: $(TINC_DIR)/Makefile .FORCE
 	@echo "TINC: building tinc ... this may take some time"
-	@cd tinc && \
-	CC=$(PWD)/toolchain/bin/arm-linux-androideabi-gcc ./configure \
-	--host=arm-linux \
-	--disable-lzo \
-	--with-openssl-lib=$(PWD)/tmp/$(OPENSSL_DIR) \
-	--with-openssl-include=$(PWD)/tmp/$(OPENSSL_DIR)/include/ &>> $(PWD)/log/build.log && \
-	make >> $(PWD)/log/build.log
+	@$(MAKE) -C $(TINC_DIR) >> $(LOG_FILE)
+	@echo "TINC: Stripping binary..."
+	@$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-strip $@
 
-	@if [ -f $(PWD)/tinc/src/tincd ] ; then \
-		echo "TINC: tincd can be found in tinc/src/tincd"; \
+	@if [ -f $@ ] ; then \
+		echo "TINC: tincd can be found in $@"; \
 	else \
 		echo "TINC: tincd build failed - log file is in ./log/build.log" ;\
 	fi;
 	
-tinc-download:
-	@echo "TINC: downloading tinc from git repo"
-	@if [ -d $(PWD)/tinc ] ; then \
-		cd tinc && git pull >> $(PWD)/log/build.log ; \
-	else \
-		git clone $(PKG_TINC_SRC) >> $(PWD)/log/build.log ; \
-	fi;
 
-tinc-version:
-	$(eval TINCVER := $(shell grep "^VERSION" $(PWD)/tinc/Makefile ))
+# Download & configure tincd (use order-only dep to avoid taking into account timestamp of the directory)
+$(TINC_DIR)/Makefile: $(TOOLCHAIN_DIR) $(OPENSSL_LIB) | $(TINC_DIR)
+	@echo "TINC: Configuring..."
+	@cd tinc && autoreconf -fsi &>> $(LOG_FILE) && \
+	CC=$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-gcc ./configure \
+	--host=arm-linux \
+	--disable-lzo \
+	--with-openssl-lib=$(OPENSSL_DIR) \
+	--with-openssl-include=$(OPENSSL_DIR)/include/ --disable-hardening &>> $(LOG_FILE) 
+	
+$(TINC_DIR):
+	@echo "TINC: downloading tinc from git repo"
+	git clone $(PKG_TINC_SRC) >> $(LOG_FILE)
+
+tinc-version: tincd-binary
+	$(eval TINCVER := $(shell grep "^VERSION" $(TINC_DIR)/Makefile ))
 	@echo TINC: $(TINCVER)
 
-install:
-	@if [ -f $(PWD)/tinc/src/tincd ] ; then \
-		cp $(PWD)/tinc/src/tincd $(PWD)/../res/raw/tincd ; \
-	else \
-		echo "tincd binary not found - please run 'make' before 'make install'" ;\
-	fi;
+install: tincd-binary
+	cp $(TINC_DIR)/src/tincd $(PWD)/../res/raw/tincd
 
 prerequisite:
 	@$(foreach req,$(REQUIREMENTS),$(call CHECK_REQUIREMENT,$(req)))
 
-	@if [ ! -d "$(PWD)/tmp/" ] ; then \
-		mkdir -p $(PWD)/tmp/ ; \
-	fi
+	@mkdir -p $(BUILD_DIR)
+	@touch $(LOG_FILE)
 
-	@if [ ! -d "$(PWD)/log/" ] ; then \
-		mkdir -p $(PWD)/log/ ; \
-	fi
-	
-	@if [ ! -d "$(PWD)/log/build.log" ] ; then \
-		touch $(PWD)/log/build.log ; \
-	fi
+    
+.PHONY: all mrproper tincd-binary install prerequisite clean tinc-version .FORCE
+.FORCE:
