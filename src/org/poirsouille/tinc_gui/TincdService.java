@@ -29,14 +29,17 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.CRC32;
 
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.PackageManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -290,26 +293,37 @@ public class TincdService extends Service implements ICallback
         // (see http://stackoverflow.com/questions/2542938/sharedpreferences-onsharedpreferencechangelistener-not-being-called-consistently)
         _prefChangeListener = new OnSharedPreferenceChangeListener()
         {
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String iKey)
             {
-                refreshPrefs();
+                refreshPrefs(iKey);
             }
         };
         _sharedPref.registerOnSharedPreferenceChangeListener(_prefChangeListener);
         // Refresh at startup as well
-        refreshPrefs();
+        refreshPrefs("");
     }
     
    /**
     * Refresh member variables from preferences screen. 
     */
-    private void refreshPrefs()
+    private void refreshPrefs(String iKey)
     {
-        Log.d(Tools.TAG, "Refreshing preferences");
+        Log.d(Tools.TAG, "Refreshing preferences for key " + iKey);
         _configPath = _sharedPref.getString("pref_key_config_path", _configPath);
         _maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
         _debugLvl = Integer.parseInt(_sharedPref.getString("pref_key_debug_level", "" + _debugLvl));
         _useSU = _sharedPref.getBoolean("pref_key_super_user", _useSU);
+        
+        if (iKey.equals("pref_key_autostart_boot"))
+        {
+            // Enable/disable boot time notification
+            Boolean aAutoStart = false;
+            aAutoStart = _sharedPref.getBoolean("pref_key_autostart_boot", aAutoStart);
+            this.getPackageManager().setComponentEnabledSetting(new ComponentName(this, BootReceiver.class),
+                    aAutoStart ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP);
+            Log.d(Tools.TAG, "Changing boot status notification state: " + aAutoStart);
+        }
     }
     
     public void onDestroy ()
@@ -365,7 +379,7 @@ public class TincdService extends Service implements ICallback
     public void call(String iData)
     {
         Date aDate = new Date();
-        SimpleDateFormat aFormat = new SimpleDateFormat("HH:mm:ss");
+        SimpleDateFormat aFormat = new SimpleDateFormat("HH:mm:ss", Locale.US);
         String aTxt = aFormat.format(aDate) + " " + iData;
         // Notify activity callback if any
         if (_callback != null)
