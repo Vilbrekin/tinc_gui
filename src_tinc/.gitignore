@@ -1,0 +1,4 @@
+tinc/
+tmp/
+toolchain/
+build.log
