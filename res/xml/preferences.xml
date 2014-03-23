@@ -16,6 +16,7 @@
         <ListPreference android:defaultValue="2" android:key="pref_key_debug_level" android:title="@string/pref_title_debug_level" android:entries="@array/debug_lvl_entries" android:entryValues="@array/debug_lvl_values"/>
         <CheckBoxPreference android:defaultValue="true" android:key="pref_key_super_user" android:title="@string/pref_title_super_user"/>
         <CheckBoxPreference android:defaultValue="false" android:key="pref_key_autostart_boot" android:title="@string/pref_title_autostart_boot"/>
+        <CheckBoxPreference android:defaultValue="false" android:key="pref_key_force_reconnect" android:title="@string/pref_title_force_reconnect"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_title_current_config" android:key="pref_key_config">
     </PreferenceCategory><PreferenceCategory android:title="@string/pref_title_hosts" android:key="pref_key_hosts">

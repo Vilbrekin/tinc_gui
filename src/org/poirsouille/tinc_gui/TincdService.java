@@ -35,11 +35,15 @@ import java.util.zip.CRC32;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -61,6 +65,8 @@ public class TincdService extends Service implements ICallback
     SharedPreferences _sharedPref;
     public int _maxLogSize = 1000;
     private OnSharedPreferenceChangeListener _prefChangeListener;
+    private final ConnectivityroadcastReceiver _broadcastReceiver = new ConnectivityroadcastReceiver();
+    private boolean _reconnectOnNetChange = false;
     
     public ICallback _callback = null;
 
@@ -82,6 +88,63 @@ public class TincdService extends Service implements ICallback
     }
     
    /**
+    * Network state events receiver. 
+    */
+    public class ConnectivityroadcastReceiver extends BroadcastReceiver
+    {
+        /// Ensure we don't try to un-register several times
+        private boolean _receiverRegistered = false;
+        
+       /**
+        * Listen for network change events, and force tincd reconnection as soon as connectivity is back. 
+        */
+        @Override
+        public void onReceive(Context context, Intent intent) 
+        {
+           String aAction = intent.getAction();
+           if(aAction.equals(ConnectivityManager.CONNECTIVITY_ACTION))
+           {
+               // Check if we have connectivity
+               boolean aConnectivity = ! intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+               Log.d(Tools.TAG, "Network state changed - network available? " + aConnectivity);
+               if (aConnectivity)
+               {
+                   Log.i(Tools.TAG, "Network state changed - forcing reconnection");
+                   // Send SIGALRM to tincd to force immediate reconnection to other nodes
+                   signal("SIGALRM");
+               }
+           }
+        }
+        
+        /**
+         * Register a broadcast receiver to get notified on network state change.
+         */
+         public void register()
+         {
+             // Only register if force reconnect is enabled and tincd is started
+             if (_reconnectOnNetChange && _started)
+             {
+                 IntentFilter aFilter = new IntentFilter();
+                 aFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+                 registerReceiver(_broadcastReceiver, aFilter);
+                 _receiverRegistered = true;
+             }
+         }
+         
+        /**
+         * Unregister broadcast receiver.
+         */
+         public void unregister()
+         {
+             if (_receiverRegistered)
+             {
+                 unregisterReceiver(_broadcastReceiver);
+                 _receiverRegistered = false;
+             }
+         }
+     };
+
+   /**
     * Execute given command, with either su or sh as shell. 
     * @param command
     * @param ioCallBack
@@ -94,6 +157,7 @@ public class TincdService extends Service implements ICallback
             aShell = "sh";
         return Tools.Run(aShell, new String[] {command}, ioCallBack);
     }
+    
     
     public void startTinc() 
     {
@@ -122,10 +186,13 @@ public class TincdService extends Service implements ICallback
 
                     _started = true;
                     _debug = false;
+                    // Register a broadcast receiver to get notified on network state change
+                    _broadcastReceiver.register();
                     // Use exec to replace shell with executable. umask is used to ensure pidfile will be world readable.
                     TincdService.this.run("umask 022; exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE), TincdService.this);
                     // Process returns only when ended
                     _started = false;
+                    _broadcastReceiver.unregister();
                     Log.d(Tools.TAG, "End of tincd thread");
                     TincdService.this.stopTincd();
                 }
@@ -301,6 +368,9 @@ public class TincdService extends Service implements ICallback
         _sharedPref.registerOnSharedPreferenceChangeListener(_prefChangeListener);
         // Refresh at startup as well
         refreshPrefs("");
+        
+        // Re-register if needed
+        _broadcastReceiver.register();
     }
     
    /**
@@ -313,11 +383,12 @@ public class TincdService extends Service implements ICallback
         _maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
         _debugLvl = Integer.parseInt(_sharedPref.getString("pref_key_debug_level", "" + _debugLvl));
         _useSU = _sharedPref.getBoolean("pref_key_super_user", _useSU);
+        _reconnectOnNetChange = _sharedPref.getBoolean("pref_key_force_reconnect", _reconnectOnNetChange);
         
         if (iKey.equals("pref_key_autostart_boot"))
         {
             // Enable/disable boot time notification
-            Boolean aAutoStart = false;
+            boolean aAutoStart = false;
             aAutoStart = _sharedPref.getBoolean("pref_key_autostart_boot", aAutoStart);
             this.getPackageManager().setComponentEnabledSetting(new ComponentName(this, BootReceiver.class),
                     aAutoStart ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
@@ -329,6 +400,7 @@ public class TincdService extends Service implements ICallback
     public void onDestroy ()
     {
         stopTincd();
+        _broadcastReceiver.unregister();
         Log.d(Tools.TAG, "Service destroyed");
     }
     
@@ -421,4 +493,5 @@ public class TincdService extends Service implements ICallback
             stopSelf();
         }
     }
+    
 }

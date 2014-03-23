@@ -17,7 +17,7 @@ public class BootReceiver extends BroadcastReceiver
             // Auto start service if enabled
             Log.d(Tools.TAG, "Boot notif");
             SharedPreferences aSharedPref = iContext.getSharedPreferences("org.poirsouille.tinc_gui_preferences", Context.MODE_PRIVATE);
-            Boolean aAutoStart = false;
+            boolean aAutoStart = false;
             aAutoStart = aSharedPref.getBoolean("pref_key_autostart_boot", aAutoStart);
             if (aAutoStart)
             {

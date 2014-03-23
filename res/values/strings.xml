@@ -46,5 +46,6 @@ making a donation</a> if you like this program.
     <string name="pref_title_debug_level">Debug level</string>
     <string name="pref_title_super_user">Execute as Super User</string>
     <string name="pref_title_autostart_boot">Auto start on boot</string>
+    <string name="pref_title_force_reconnect">Force reconnection on network change</string>
     
 </resources>
