@@ -3,6 +3,8 @@
 REQUIREMENTS := autoconf automake bash openssl tar wget
 
 PWD 		:= $(shell pwd)
+GIT_ROOT    := $(shell git rev-parse --show-toplevel)
+
 # Default to a standard ndk location to error if not present
 ANDROID_NDK   ?= /opt/android-ndk
 TOOLCHAIN_DIR := $(PWD)/toolchain
@@ -26,6 +28,7 @@ clean:
 #Delete everything including toolchain
 mrproper: clean
 	@rm -rf $(LOG_FILE) $(TOOLCHAIN_DIR)
+	@cd $(GIT_ROOT) && git submodule deinit -f .
 
 
 # Openssl compiled library (Force -j1 because of openssl limitation)
@@ -34,7 +37,7 @@ $(OPENSSL_LIB): $(OPENSSL_DIR)/Makefile $(TOOLCHAIN_DIR) .FORCE
 	@$(MAKE) -j1 -C $(OPENSSL_DIR) CC=$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-gcc AR="$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-ar r" RANLIB=$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-ranlib &>> $(LOG_FILE)
 
 # Openssl sources directory
-$(OPENSSL_DIR)/Makefile:
+$(OPENSSL_DIR)/Makefile: | git-submodules
 	@echo "OPENSSL: Configuring..."
 	@cd $(OPENSSL_DIR) && ./Configure dist >> $(LOG_FILE) 
 
@@ -57,7 +60,7 @@ $(TINC_DIR)/src/tincd: $(TINC_DIR)/Makefile .FORCE
 	
 
 # Download & configure tincd (use order-only dep to avoid taking into account timestamp of the directory)
-$(TINC_DIR)/Makefile: $(TOOLCHAIN_DIR) $(OPENSSL_LIB) | $(TINC_DIR)
+$(TINC_DIR)/Makefile: $(TOOLCHAIN_DIR) $(OPENSSL_LIB) | git-submodules
 	@echo "TINC: Configuring..."
 	@cd tinc && autoreconf -fsi &>> $(LOG_FILE) && \
 	CC=$(TOOLCHAIN_DIR)/bin/arm-linux-androideabi-gcc ./configure \
@@ -66,17 +69,27 @@ $(TINC_DIR)/Makefile: $(TOOLCHAIN_DIR) $(OPENSSL_LIB) | $(TINC_DIR)
 	--with-openssl-lib=$(OPENSSL_DIR) \
 	--with-openssl-include=$(OPENSSL_DIR)/include/ --disable-hardening &>> $(LOG_FILE) 
 
+$(ANDROID_NDK):
+	@echo "You're ANDROID_NDK variable is not pointing to a valid NDK setup."
+	@echo " cd /tmp && wget http://dl.google.com/android/ndk/android-ndk-r9d-linux-x86.tar.bz2 && tar xfj android-ndk-r9d-linux-x86.tar.bz2"
+	@echo " ANDROID_NDK=/tmp/android-ndk-r9d-linux-x86.tar.bz2 make"
+	@exit 1
+	
+git-submodules:
+	@echo "Initializing git submodules..."
+	@cd $(GIT_ROOT) && git submodule init && git submodule update
+    
 tinc-version: tincd-binary
 	$(eval TINCVER := $(shell grep "^VERSION" $(TINC_DIR)/Makefile ))
 	@echo TINC: $(TINCVER)
 
 install: tincd-binary
-	mkdir -p $(PWD)/../res/raw
-	cp $(TINC_DIR)/src/tincd $(PWD)/../res/raw/tincd
+	mkdir -p $(GIT_ROOT)/res/raw
+	cp $(TINC_DIR)/src/tincd $(GIT_ROOT)/res/raw/tincd
 
 prerequisite:
 	@$(foreach req,$(REQUIREMENTS),$(call CHECK_REQUIREMENT,$(req)))
 	@touch $(LOG_FILE)
     
-.PHONY: all mrproper tincd-binary install prerequisite clean tinc-version .FORCE
+.PHONY: all mrproper tincd-binary install prerequisite clean tinc-version git-submodules .FORCE
 .FORCE:
