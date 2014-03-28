@@ -4,6 +4,7 @@ REQUIREMENTS := autoconf automake bash openssl tar wget
 
 PWD 		:= $(shell pwd)
 GIT_ROOT    := $(shell git rev-parse --show-toplevel)
+SHELL		:= /bin/bash
 
 # Default to a standard ndk location to error if not present
 ANDROID_NDK   ?= /opt/android-ndk
