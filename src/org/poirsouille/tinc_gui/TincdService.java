@@ -51,7 +51,7 @@ import android.util.Log;
 
 public class TincdService extends Service implements ICallback
 {
-    static final String TINCBIN = "tincd";
+    static final String TINCBIN = "tincd." + getArch();
     private static final String PIDFILE = "tinc.pid";
     String _configPath;
     // Unique Identification Number for the Notification.
@@ -158,6 +158,23 @@ public class TincdService extends Service implements ICallback
         return Tools.Run(aShell, new String[] {command}, ioCallBack);
     }
     
+    private static String getArch()
+    {
+        String prop = System.getProperty("os.arch");
+        
+        if (prop.contains("x86") || prop.contains("i686") || prop.contains("i386"))
+        {
+            return "x86";
+        }
+        else if(prop.contains("mips"))
+        {
+            return "mips";
+        }
+        else
+        {
+            return "armeabi";
+        }
+    }
     
     public void startTinc() 
     {
@@ -220,8 +237,7 @@ public class TincdService extends Service implements ICallback
         call("tincd terminated.");
     }
  
-   /**
-    * Install tincd binary on file system if needed (either it does not exist yet, or it's different from the bindled one). 
+   /**    * Install tincd binary on file system if needed (either it does not exist yet, or it's different from the bundled one). 
     */
     void installTincd()
     {
