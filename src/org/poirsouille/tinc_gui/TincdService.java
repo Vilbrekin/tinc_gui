@@ -43,6 +43,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
@@ -51,7 +52,7 @@ import android.util.Log;
 
 public class TincdService extends Service implements ICallback
 {
-    static final String TINCBIN = "tincd." + getArch();
+    static final String TINCBIN = "tincd";
     private static final String PIDFILE = "tinc.pid";
     String _configPath;
     // Unique Identification Number for the Notification.
@@ -244,7 +245,8 @@ public class TincdService extends Service implements ICallback
         try
         {
             boolean aInstallNeeded = true;
-            InputStream aIS = getResources().openRawResource(R.raw.tincd);  
+            AssetManager aAssetMgr = this.getAssets();
+            InputStream aIS = aAssetMgr.open(getArch() + "/tincd");
             int aInLen = aIS.available();
             byte[] buffer = new byte[aInLen];  
             //read the text file as a stream, into the buffer  
@@ -495,6 +497,7 @@ public class TincdService extends Service implements ICallback
         String aStatus = signal("SIGUSR1");
         aStatus += signal("SIGUSR2");
         aStatus += Tools.ToString(run("ip route", null));
+        aStatus += Tools.ToString(run(getFileStreamPath(TINCBIN) + " --version", null));
         return aStatus;
     }
     

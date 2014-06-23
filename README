@@ -10,12 +10,10 @@ Copyright (C) 2014 Vilbrekin <vilbrekin@gmail.com>
 Distributed under GPLv3.
 
 
-ARM tincd binary can be cross-compiled from src_tinc folder thanks to the supplied makefile.
+tincd binary can be cross-compiled ing the NDK.
 Git sub-modules are used to track the correct versions of OpenSSL and tinc.
-Android NDK should be specified to make using the ANDROID_NDK variable.
 The easiest way to build tincd should be similar to:
 
-export ANDROID_NDK=~/android/android-ndk-r9d 
-make -C src_tinc/
-make -C src_tinc/ install
+git submodule update --init
+~/android/android-ndk-r9d/ndk-build -j4
 

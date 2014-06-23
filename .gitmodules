@@ -2,7 +2,6 @@
 	path = src_tinc/tinc
 	url = http://tinc-vpn.org/git/tinc
 	ignore = dirty
-[submodule "src_tinc/openssl"]
-	path = src_tinc/openssl
-	url = https://github.com/openssl/openssl
-	ignore = dirty
+[submodule "platform_external_openssl"]
+	path = platform_external_openssl
+	url = https://github.com/Vilbrekin/platform_external_openssl.git
