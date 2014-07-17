@@ -22,6 +22,12 @@
 /* Unknown BSD variant */
 /* #undef HAVE_BSD */
 
+/* have curses support */
+/* #undef HAVE_CURSES */
+
+/* Define to 1 if you have the <curses.h> header file. */
+/* #undef HAVE_CURSES_H */
+
 /* Cygwin */
 /* #undef HAVE_CYGWIN */
 
@@ -30,6 +36,10 @@
 
 /* Darwin (MacOS/X) */
 /* #undef HAVE_DARWIN */
+
+/* Define to 1 if you have the declaration of `EVP_CTRL_GCM_GET_TAG', and to 0
+   if you don't. */
+#define HAVE_DECL_EVP_CTRL_GCM_GET_TAG 1
 
 /* Define to 1 if you have the declaration of `freeaddrinfo', and to 0 if you
    don't. */
@@ -47,11 +57,25 @@
    don't. */
 #define HAVE_DECL_GETNAMEINFO 1
 
+/* Define to 1 if you have the declaration of `OpenSSL_add_all_algorithms',
+   and to 0 if you don't. */
+#define HAVE_DECL_OPENSSL_ADD_ALL_ALGORITHMS 1
+
+/* Define to 1 if you have the declaration of `res_init', and to 0 if you
+   don't. */
+#define HAVE_DECL_RES_INIT 0
+
 /* Define to 1 if you have the <dirent.h> header file. */
 #define HAVE_DIRENT_H 1
 
 /* DragonFly */
 /* #undef HAVE_DRAGONFLY */
+
+/* Define to 1 if you have the `ECDH_compute_key' function. */
+#define HAVE_ECDH_COMPUTE_KEY 1
+
+/* Define to 1 if you have the `ECDSA_verify' function. */
+#define HAVE_ECDSA_VERIFY 1
 
 /* Define to 1 if you have the `EVP_EncryptInit_ex' function. */
 #define HAVE_EVP_ENCRYPTINIT_EX 1
@@ -70,6 +94,9 @@
 
 /* Define to 1 if you have the `ftime' function. */
 #define HAVE_FTIME 1
+
+/* Define to 1 if you have the <gcrypt.h> header file. */
+/* #undef HAVE_GCRYPT_H */
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #define HAVE_GETTIMEOFDAY 1
@@ -179,6 +206,12 @@
 /* OpenBSD */
 /* #undef HAVE_OPENBSD */
 
+/* Define to 1 if you have the <openssl/ecdh.h> header file. */
+#define HAVE_OPENSSL_ECDH_H 1
+
+/* Define to 1 if you have the <openssl/ec.h> header file. */
+#define HAVE_OPENSSL_EC_H 1
+
 /* Define to 1 if you have the <openssl/engine.h> header file. */
 #define HAVE_OPENSSL_ENGINE_H 1
 
@@ -200,9 +233,6 @@
 /* Define to 1 if you have the <openssl/sha.h> header file. */
 #define HAVE_OPENSSL_SHA_H 1
 
-/* Define to 1 if you have the `pselect' function. */
-#define HAVE_PSELECT 1
-
 /* Define to 1 if you have the `putenv' function. */
 #define HAVE_PUTENV 1
 
@@ -211,6 +241,18 @@
 
 /* Define to 1 if you have the `RAND_pseudo_bytes' function. */
 #define HAVE_RAND_PSEUDO_BYTES 1
+
+/* have readline support */
+/* #undef HAVE_READLINE */
+
+/* Define to 1 if you have the <readline/history.h> header file. */
+/* #undef HAVE_READLINE_HISTORY_H */
+
+/* Define to 1 if you have the <readline/readline.h> header file. */
+/* #undef HAVE_READLINE_READLINE_H */
+
+/* Define to 1 if you have the <resolv.h> header file. */
+#define HAVE_RESOLV_H 1
 
 /* Define to 1 if you have the `select' function. */
 #define HAVE_SELECT 1
@@ -323,8 +365,14 @@
 /* Define to 1 if you have the <sys/uio.h> header file. */
 #define HAVE_SYS_UIO_H 1
 
+/* Define to 1 if you have the <sys/un.h> header file. */
+#define HAVE_SYS_UN_H 1
+
 /* Define to 1 if you have the <sys/wait.h> header file. */
 #define HAVE_SYS_WAIT_H 1
+
+/* Define to 1 if you have the `time' function. */
+#define HAVE_TIME 1
 
 /* Define to 1 if you have the <time.h> header file. */
 #define HAVE_TIME_H 1
@@ -363,7 +411,7 @@
 #define PACKAGE_NAME "tinc"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "tinc 1.0.24"
+#define PACKAGE_STRING "tinc 1.1pre10"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "tinc"
@@ -372,7 +420,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.0.24"
+#define PACKAGE_VERSION "1.1pre10"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -409,7 +457,7 @@
 
 
 /* Version number of package */
-#define VERSION "1.0.24"
+#define VERSION "1.1pre10"
 
 /* Compile with support for Windows 2000 */
 /* #undef WITH_WINDOWS2000 */
@@ -429,6 +477,9 @@
 
 /* Defined if the __malloc__ attribute is not supported. */
 #define __malloc__ /**/
+
+/* Defined if the __warn_unused_result__ attribute is not supported. */
+#define __warn_unused_result__ /**/
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */
