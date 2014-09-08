@@ -263,6 +263,8 @@ public class TincActivity extends Activity implements ICallback
     
     private void updateLog(String iData)
     {
+    	_logTextView.setTextSize(_service.getLogFontSize());
+
         if (_service != null)
         {
             List<String> aTempOut = _service.popOutput();
