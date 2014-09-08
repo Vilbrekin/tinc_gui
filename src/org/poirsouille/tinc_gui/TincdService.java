@@ -65,6 +65,7 @@ public class TincdService extends Service implements ICallback
     private List<String> _tempOutput = Collections.synchronizedList(new LinkedList<String>());
     SharedPreferences _sharedPref;
     public int _maxLogSize = 1000;
+    public int _fontsizelog = 8;
     private OnSharedPreferenceChangeListener _prefChangeListener;
     private final ConnectivityroadcastReceiver _broadcastReceiver = new ConnectivityroadcastReceiver();
     private boolean _reconnectOnNetChange = false;
@@ -399,6 +400,7 @@ public class TincdService extends Service implements ICallback
         Log.d(Tools.TAG, "Refreshing preferences for key " + iKey);
         _configPath = _sharedPref.getString("pref_key_config_path", _configPath);
         _maxLogSize = Integer.parseInt(_sharedPref.getString("pref_key_max_log_size", "" + _maxLogSize));
+        _fontsizelog = Integer.parseInt(_sharedPref.getString("pref_key_font_size_log", "" + _fontsizelog));
         _debugLvl = Integer.parseInt(_sharedPref.getString("pref_key_debug_level", "" + _debugLvl));
         _useSU = _sharedPref.getBoolean("pref_key_super_user", _useSU);
         _reconnectOnNetChange = _sharedPref.getBoolean("pref_key_force_reconnect", _reconnectOnNetChange);
@@ -501,6 +503,25 @@ public class TincdService extends Service implements ICallback
         return aStatus;
     }
     
+   /**
+    * Get font size for log window
+    * clamp it to a suitable range (8 -100)
+    * @return
+    */
+   public Integer getLogFontSize()
+   {
+	   if(_fontsizelog <= 8)
+	   {
+		   _fontsizelog = 8;
+	   }
+	   if(_fontsizelog >= 100)
+	   {
+		   _fontsizelog = 100;
+	   }
+
+	   return _fontsizelog;
+   }
+
    /**
     * Check if there's anything left in context or tincd is running.
     * Otherwise stop the service.

@@ -47,5 +47,8 @@ making a donation</a> if you like this program.
     <string name="pref_title_super_user">Execute as Super User</string>
     <string name="pref_title_autostart_boot">Auto start on boot</string>
     <string name="pref_title_force_reconnect">Force reconnection on network change</string>
+    <string name="font_size_log">Font size for log window (8-100)</string>
+    <string name="font_size_log_details">Font size for log window (8-100)</string>
+    <string name="pref_key_font_size_log">pref_key_font_size_log</string>
     
 </resources>
