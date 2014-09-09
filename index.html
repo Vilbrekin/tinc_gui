@@ -40,7 +40,7 @@
 <h2>Where to get it?</h2>
 
 <p>Preferred way to get Tinc GUI is via <a href="https://play.google.com/store/apps/details?id=org.poirsouille.tinc_gui">Google Play</a>.</p>
-<p>You may also get directly the APK for manual installation:<br/><a href="files/tinc_gui_0.9.8.apk">Tinc GUI 0.9.8</a> (historical versions are <a href="https://github.com/Vilbrekin/tinc_gui/tree/gh-pages/files">available on GitHub</a>)</p>
+<p>You may also get directly the APK for manual installation:<br/><a href="files/tinc_gui_0.9.9.apk">Tinc GUI 0.9.9</a> (historical versions are <a href="https://github.com/Vilbrekin/tinc_gui/tree/gh-pages/files">available on GitHub</a>)</p>
 
 <h2>How does it work?</h2>
 
@@ -126,12 +126,25 @@ ip route del 128.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE</code></pre>
 
 <h3>What are the supported CPU architectures?</h3>
 
-<p>ARM only for the time being.</p>
+<p>ARM and x86 only for the time being.</p>
 
 <h3>Is it working?</h3>
 
-<p>Used to work very well on my SGS2 i9100, under CyanogenMod 9. Now running on Nexus 4 with CM 11 (Android 4.4) without a glitch.
+<p>Used to work very well on my SGS2 i9100, under CyanogenMod 9. Now running on Nexus 4 and Oneplus One with CM 11 (Android 4.4.4) without a glitch.
 Waiting for more feedback.</p>
+
+<h3>Is it possible to start/stop the service from other applications (such as tasker)?</h3>
+
+<p>Yes, since version 0.9.9. This can be done using the custom actions of TincdService.<br/>
+Package: org.poirsouille.tinc_gui<br/>
+Class: org.poirsouille.tinc_gui.TincdService<br/>
+Actions: org.poirsouille.tinc_gui.TincdService.START / org.poirsouille.tinc_gui.TincdService.STOP
+</p>
+<p>You may test this functionality using ADB to send the intents:</p>
+<pre>
+adb shell am startservice -a org.poirsouille.tinc_gui.TincdService.START org.poirsouille.tinc_gui/.TincdService
+adb shell am startservice -a org.poirsouille.tinc_gui.TincdService.STOP org.poirsouille.tinc_gui/.TincdService
+</pre>
 
 <h3>Is it free?</h3>
 
