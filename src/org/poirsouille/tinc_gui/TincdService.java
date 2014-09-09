@@ -48,6 +48,7 @@ import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.sax.StartElementListener;
 import android.util.Log;
 
 public class TincdService extends Service implements ICallback
@@ -357,16 +358,34 @@ public class TincdService extends Service implements ICallback
         _debug = !_debug;
     }
     
+   /**
+    * Handle intent on startService call. Defines START & STOP actions to allow external applications to drive service. 
+    */
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) 
+    public int onStartCommand(Intent iIntent, int flags, int startId) 
     {
         // Because of the START_STICKY, the service might get restarted by the system after a kill, but with a null intent
-        if (intent != null)
+        if (iIntent != null)
         {
-            startTinc();
-            Log.d(Tools.TAG, "Service started");
-            showNotification();
+            if (iIntent.getAction() == "org.poirsouille.tinc_gui.TincdService.START")
+            {
+                Log.i(Tools.TAG, "Received START intent for tincd service");
+                startTinc();
+                Log.d(Tools.TAG, "Service started");
+                showNotification();
+            }
+            else if (iIntent.getAction() == "org.poirsouille.tinc_gui.TincdService.STOP")
+            {
+                Log.i(Tools.TAG, "Received STOP intent for tincd service");
+                stopTincd();
+            }        
+            else
+            {
+                Log.e(Tools.TAG, "Unkown intent action: " + iIntent.getAction());
+                return START_NOT_STICKY;
+            }
         }
+
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;

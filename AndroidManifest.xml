@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
     package="org.poirsouille.tinc_gui"
-    android:versionCode="9"
-    android:versionName="0.9.8" >
+    android:versionCode="10"
+    android:versionName="0.9.9" >
 
     <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="19" />
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
@@ -22,7 +22,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".TincdService"></service>
+        <service android:name=".TincdService" android:exported="true" tools:ignore="ExportedService" >
+            <!-- Export START and STOP actions to allow interactions with apps such as Tasker -->
+            <intent-filter>
+                <action android:name="org.poirsouille.tinc_gui.TincdService.START"></action>
+                <action android:name="org.poirsouille.tinc_gui.TincdService.STOP"></action>
+            </intent-filter>
+        </service>
         <activity android:name=".SettingsActivity"></activity>
         <activity android:name=".SettingsActivityOld"></activity>
         <activity android:name=".AboutActivity"></activity>

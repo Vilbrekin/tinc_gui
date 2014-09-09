@@ -23,7 +23,7 @@ public class BootReceiver extends BroadcastReceiver
             {
                 Log.i(Tools.TAG, "Autostarting Tinc GUI service");
                 // Start tincd service
-                Intent intent = new Intent(iContext, TincdService.class); 
+                Intent intent = new Intent(iContext, TincdService.class).setAction("org.poirsouille.tinc_gui.TincdService.START"); 
                 iContext.startService(intent);
             }
         }

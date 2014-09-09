@@ -222,7 +222,7 @@ public class TincActivity extends Activity implements ICallback
             else
             {
                 // Start tincd service
-                Intent intent = new Intent(this,TincdService.class); 
+                Intent intent = new Intent(this,TincdService.class).setAction("org.poirsouille.tinc_gui.TincdService.START"); 
                 startService(intent);
             }
         }
