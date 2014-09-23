@@ -99,14 +99,18 @@ public class SettingsTools implements OnSharedPreferenceChangeListener
     private void addHostsToGroup(File iHostsDir, PreferenceGroup oGroup)
     {
         File[] aChildren = iHostsDir.listFiles();
-        for (File aChild : aChildren) 
+        // listFiles might return null even if it's a proper directory but we can't access it
+        if (aChildren != null)
         {
-            // Apply similar check to tinc's check_id to filter only valid hosts configuration files
-            if (aChild.getName().matches("[a-zA-Z0-9_]+"))
+            for (File aChild : aChildren) 
             {
-                addFilePreference(aChild, oGroup, R.drawable.ic_menu_manage);
-                // Look for -up/-down scripts for this host
-                addUpDown(aChild, oGroup);
+                // Apply similar check to tinc's check_id to filter only valid hosts configuration files
+                if (aChild.getName().matches("[a-zA-Z0-9_]+"))
+                {
+                    addFilePreference(aChild, oGroup, R.drawable.ic_menu_manage);
+                    // Look for -up/-down scripts for this host
+                    addUpDown(aChild, oGroup);
+                }
             }
         }
     }
