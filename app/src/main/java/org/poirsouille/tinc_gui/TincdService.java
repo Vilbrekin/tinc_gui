@@ -207,7 +207,8 @@ public class TincdService extends Service implements ICallback
                     // Register a broadcast receiver to get notified on network state change
                     _broadcastReceiver.register();
                     // Use exec to replace shell with executable. umask is used to ensure pidfile will be world readable.
-                    TincdService.this.run("sh -c'umask 022; id; exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE) + "'", TincdService.this);
+                    TincdService.this.run("sh -c 'umask 022; id; exec " + getFileStreamPath(TINCBIN) + " -D -d" + _debugLvl + " -c " + _configPath + " --pidfile=" + getFileStreamPath(PIDFILE) + "'", TincdService.this);
+                    Log.d(Tools.TAG, "tincd process terminated itself");
                     // Process returns only when ended
                     _started = false;
                     _broadcastReceiver.unregister();

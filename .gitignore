@@ -2,4 +2,14 @@
 /gen/
 /local.properties
 /obj
+/app/build/
+.gradle
+*.class
+*.apk
+app/manifest-merger-release-report.txt
 
+# Intellij IDEA (see https://intellij-support.jetbrains.com/entries/23393067)
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/datasources.xml
+.idea/dataSources.ids
