@@ -13,3 +13,6 @@ app/manifest-merger-release-report.txt
 .idea/tasks.xml
 .idea/datasources.xml
 .idea/dataSources.ids
+
+app/src/main/obj/
+app/src/main/libs/
