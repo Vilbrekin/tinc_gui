@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
     package="org.poirsouille.tinc_gui"
-    android:versionCode="14"
-    android:versionName="0.9.13" >
+    android:versionCode="1000"
+    android:versionName="0.10.0" >
 
     <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="19" />
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
