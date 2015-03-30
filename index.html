@@ -116,6 +116,60 @@ ip route del $VPN_GATEWAY dev $INTERFACE
 ip route del 0.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE 
 ip route del 128.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE</code></pre>
 
+<h3>Android 5.0 / Lollipop</h3>
+
+<p>Lollipop uses several routing tables, depending on the available interfaces and/or users. This makes VPN re-routing a bit trickier. Here is my default configuration when running CM 12 on wifi connection:</p>
+<pre>root@hammerhead:/ # ip rule show
+0:      from all lookup local
+10000:  from all fwmark 0xc0000/0xd0000 lookup legacy_system
+13000:  from all fwmark 0x10063/0x1ffff lookup local_network
+13000:  from all fwmark 0x10064/0x1ffff lookup wlan0
+14000:  from all oif wlan0 lookup wlan0
+15000:  from all fwmark 0x0/0x10000 lookup legacy_system
+16000:  from all fwmark 0x0/0x10000 lookup legacy_network
+17000:  from all fwmark 0x0/0x10000 lookup local_network
+19000:  from all fwmark 0x64/0x1ffff lookup wlan0
+22000:  from all fwmark 0x0/0xffff lookup wlan0
+23000:  from all fwmark 0x0/0xffff uidrange 0-0 lookup main
+32000:  from all unreachable
+
+root@hammerhead:/ # ip route show
+# As in your example, there's no default route here
+192.168.0.0/24 dev wlan0  proto kernel  scope link  src 192.168.0.42
+
+root@hammerhead:/ # ip route show table wlan0
+#But here you find it in the wlan0 table
+default via 192.168.0.253 dev wlan0  proto static
+192.168.0.0/24 dev wlan0  proto static  scope link</pre>
+
+<p>Therefore, host-up/down scripts must be adapted. Here is a working example:</p>
+
+<p>hosts/another_peer-up</p>
+<pre><code>#!/system/bin/sh 
+echo $REMOTEADDRESS
+echo $INTERFACE 
+VPN_GATEWAY=10.0.0.254
+# Fetch the first default gateway from the current routing tables
+ORIGINAL_GATEWAY=$(for a in $(ip rule show | grep lookup | sed -r 's/.* lookup ([^ ]+).*/\1/'); do ip route show table $a | grep ^default | cut -d ' ' -f 2-5; done | head -1)
+echo $ORIGINAL_GATEWAY
+
+# Use new routing table 100, to have higher priority than lollipop's ones
+ip rule add prio 100 from all lookup 100
+ip route add table 100 $REMOTEADDRESS $ORIGINAL_GATEWAY 
+ip route add table 100 $VPN_GATEWAY dev $INTERFACE 
+ip route add table 100 0.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE 
+ip route add table 100 128.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE</code></pre>
+
+<p>hosts/another_peer-down</p>
+<pre><code>#!/system/bin/sh
+VPN_GATEWAY=10.0.0.254
+
+ip rule del from all lookup 100
+ip route del table 100 $REMOTEADDRESS
+ip route del table 100 $VPN_GATEWAY dev $INTERFACE 
+ip route del table 100 0.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE 
+ip route del table 100 128.0.0.0/1 via $VPN_GATEWAY dev $INTERFACE</code></pre>
+
 <h3>I'm getting "/dev/net/tun not found" error when starting tinc</h3>
 
 <p>Depending on your ROM, the path to TUN/TAP device might be different. Use the Device directive in tinc.conf to specify the correct one (eg. "Device = /dev/tun for CM ROMs).</p>
