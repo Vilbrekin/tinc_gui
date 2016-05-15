@@ -230,6 +230,12 @@ public class TincdService extends Service implements ICallback
                 run("kill " + aPid + " || rm " + getFileStreamPath(PIDFILE), null);
                 Log.d(Tools.TAG, "killed");
             }
+            else
+            {
+                // Work around bug #36: seems PID file doesn't work correctly on some ROMS (probably related to selinux)
+                run("pkill tincd", null);
+                Log.d(Tools.TAG, "Couldn't find PID, tincd pkilled");
+            }
         }
         _debug = false;
         stopForeground(true);
@@ -454,8 +460,8 @@ public class TincdService extends Service implements ICallback
     @SuppressWarnings("deprecation")
     private void showNotification() 
     {
-        
-        Notification notification = new Notification(R.drawable.favicon, getText(R.string.local_service_started),
+        // TODO: migrate to Notification.Builder (http://developer.android.com/reference/android/app/Notification.Builder.html)
+        Notification notification = new Notification(R.raw.favicon, getText(R.string.local_service_started),
                 System.currentTimeMillis());
         Intent notificationIntent = new Intent(this, TincActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);

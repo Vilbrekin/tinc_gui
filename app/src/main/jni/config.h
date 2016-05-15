@@ -409,7 +409,7 @@
 
 
 /* Version number of package */
-#define VERSION "1.0.25"
+#define VERSION "1.0.28"
 
 /* Compile with support for Windows 2000 */
 /* #undef WITH_WINDOWS2000 */

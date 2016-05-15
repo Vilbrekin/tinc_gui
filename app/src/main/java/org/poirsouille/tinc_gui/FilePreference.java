@@ -72,6 +72,8 @@ public class FilePreference extends DialogPreference
                 fileList.notifyDataSetChanged();
             }
         });
+
+        super.onBindDialogView(view);
     }
     
    /**
