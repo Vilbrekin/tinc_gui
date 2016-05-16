@@ -1,2 +1,8 @@
 language: android
 
+before_install:
+    - env; pwd; whoami
+    - export NDK_VERSION=r11c
+    - wget http://dl.google.com/android/repository/android-ndk-${NDK_VERSION}-linux-x86_64.zip
+    - unzip -q android-ndk-${NDK_VERSION}-linux-x86_64.zip
+    - export ANDROID_NDK_HOME=$(pwd)/android-ndk-${NDK_VERSION}
