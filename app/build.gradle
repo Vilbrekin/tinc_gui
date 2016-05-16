@@ -47,6 +47,8 @@ android {
         compileTask -> compileTask.dependsOn buildNative
     }
 
+    /*
+    // TODO: find a cleaner solution than un-commenting when needed....
     signingConfigs {
         release {
             storeFile file(System.console().readLine("\n\$ Enter keystore path: "))
@@ -55,12 +57,13 @@ android {
             keyPassword new String(System.console().readPassword("\n\$ Enter key password: "))
         }
     }
+    */
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             zipAlignEnabled true
-            signingConfig signingConfigs.release
+            //signingConfig signingConfigs.release
         }
     }
 }
